@@ -13,10 +13,26 @@ jobs:
       - name: Build
         run: ./gradlew build --console=plain > build.log 2>&1
         continue-on-error: true
+      - name: Dump API
+        continue-on-error: true
+        run: |
+          mkdir -p api
+          find "$HOME" "$GITHUB_WORKSPACE" -name 'minecraft-*.jar' -not -name '*sources*' 2>/dev/null > api/jars.txt || true
+          grep -i yarn api/jars.txt > api/yarn-jars.txt || true
+          CP=$(tr '\n' ':' < api/yarn-jars.txt)
+          for j in $(cat api/yarn-jars.txt); do unzip -Z1 "$j"; done | grep '^net/minecraft/.*\.class$' | sort -u > api/classes.txt || true
+          NAMES="Entity LivingEntity PlayerEntity PlayerInventory ClientPlayerEntity ClientPlayNetworkHandler ClientPlayerInteractionManager Camera RenderTickCounter ActionResult ParticleManager MinecraftClient Screen Click KeyInput CharInput MouseInput DrawContext NativeImageBackedTexture AbstractTexture SkinTextures RegistryWrapper Item ItemStack ItemTags DataComponentTypes EquippableComponent Window BlockEntityRenderManager EntityRenderManager EntityRenderDispatcher WorldRenderer GameRenderer RenderPipelines RenderPipeline RenderLayer RenderLayers VertexRendering VertexConsumerProvider BufferBuilder Tessellator VertexFormat VertexFormats TextRenderer Frustum ClientWorld World KeyBinding Keyboard Mouse InputUtil Hand Util Matrix3x2fStack GuiRenderState"
+          for n in $NAMES; do
+            for c in $(grep -E "/${n}"'(\$[A-Za-z0-9_]+)*\.class$' api/classes.txt | sed 's#\.class$##; s#/#.#g'); do
+              echo "=== $c" >> api/api.txt
+              javap -cp "$CP" -public "$c" >> api/api.txt 2>&1 || true
+            done
+          done
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: build-log-and-jar
+          name: build-log-and-api
           path: |
             build.log
+            api/
             build/libs/*.jar
