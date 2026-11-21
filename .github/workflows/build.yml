@@ -24,11 +24,11 @@ jobs:
           grep -i yarn api/jars.txt > api/yarn-jars.txt || true
           CP=$(tr '\n' ':' < api/yarn-jars.txt)
           for j in $(cat api/yarn-jars.txt); do unzip -Z1 "$j"; done | grep '^net/minecraft/.*\.class$' | sort -u > api/classes.txt || true
-          NAMES="InGameHud PlayerSkinDrawer ScreenRect Entity LivingEntity PlayerEntity ClientPlayerEntity Camera DrawContext Screen GameRenderer WorldRenderer EntityRenderManager"
+          NAMES="Camera ClientPlayerEntity ClientPlayerInteractionManager KeyBinding Keyboard Mouse MinecraftClient Frustum WorldChunk ChunkOcclusionDataBuilder ClientConnection HandledScreen HeightContext MobSpawnerLogic TextVisitFactory CountPlacementModifier HeightRangePlacementModifier RarityFilterPlacementModifier ChunkGenerator ClientPlayNetworkHandler Entity Screen InGameHud"
           for n in $NAMES; do
             for c in $(grep -E "/${n}"'(\$[A-Za-z0-9_]+)*\.class$' api/classes.txt | sed 's#\.class$##; s#/#.#g'); do
               echo "=== $c" >> api/api.txt
-              javap -cp "$CP" -public "$c" >> api/api.txt 2>&1 || true
+              javap -cp "$CP" -private "$c" >> api/api.txt 2>&1 || true
             done
           done
       - uses: actions/upload-artifact@v4
