@@ -37,8 +37,8 @@ processResources {
 
 tasks.withType(JavaCompile).configureEach {
     it.options.release = 21
+    it.options.compilerArgs += ['-Xmaxerrs', '10000']
 }
-
 java {
     targetCompatibility = JavaVersion.VERSION_17
 }
