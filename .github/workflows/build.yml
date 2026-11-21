@@ -12,6 +12,10 @@ jobs:
       - name: Apply patch
         continue-on-error: true
         run: patch -p1 -E --no-backup-if-mismatch < fix.patch > patch.log 2>&1
+      - name: Prepare font
+        run: |
+          mkdir -p src/main/resources/assets/krypton/font
+          cp src/main/resources/font.ttf src/main/resources/assets/krypton/font/font.ttf
       - run: chmod +x gradlew
       - name: Build
         run: ./gradlew build --console=plain > build.log 2>&1
@@ -23,13 +27,27 @@ jobs:
           find "$HOME" "$GITHUB_WORKSPACE" -name 'minecraft-*.jar' -not -name '*sources*' 2>/dev/null > api/jars.txt || true
           grep -i yarn api/jars.txt > api/yarn-jars.txt || true
           CP=$(tr '\n' ':' < api/yarn-jars.txt)
-          for j in $(cat api/yarn-jars.txt); do unzip -Z1 "$j"; done | grep '^net/minecraft/.*\.class$' | sort -u > api/classes.txt || true
-          NAMES="Camera ClientPlayerEntity ClientPlayerInteractionManager KeyBinding Keyboard Mouse MinecraftClient Frustum WorldChunk ChunkOcclusionDataBuilder ClientConnection HandledScreen HeightContext MobSpawnerLogic TextVisitFactory CountPlacementModifier HeightRangePlacementModifier RarityFilterPlacementModifier ChunkGenerator ClientPlayNetworkHandler Entity Screen InGameHud"
+          for j in $(cat api/yarn-jars.txt); do unzip -Z1 "$j"; done | grep -E '^(net/minecraft|com/mojang)/.*\.class$' | sort -u > api/classes.txt || true
+          NAMES="Camera ClientPlayerEntity ClientPlayerInteractionManager KeyBinding Keyboard Mouse MinecraftClient Frustum WorldChunk ChunkOcclusionDataBuilder ClientConnection HandledScreen HeightContext MobSpawnerLogic TextVisitFactory CountPlacementModifier HeightRangePlacementModifier RarityFilterPlacementModifier ChunkGenerator ClientPlayNetworkHandler Entity Screen InGameHud RenderPipelines RenderPipeline RenderLayer RenderLayers VertexRendering VertexConsumerProvider BufferBuilder Tessellator VertexFormats VertexFormat DepthTestFunction BlendFunction WorldRenderer EntityRenderManager GameRenderer BlockEntityRenderManager"
           for n in $NAMES; do
             for c in $(grep -E "/${n}"'(\$[A-Za-z0-9_]+)*\.class$' api/classes.txt | sed 's#\.class$##; s#/#.#g'); do
               echo "=== $c" >> api/api.txt
               javap -cp "$CP" -private "$c" >> api/api.txt 2>&1 || true
             done
+          done
+      - name: Dump Fabric rendering API
+        continue-on-error: true
+        run: |
+          mkdir -p api/nested
+          find "$HOME" "$GITHUB_WORKSPACE" -name 'fabric-api-*.jar' -not -name '*sources*' 2>/dev/null > api/fabric-api-jars.txt || true
+          for j in $(cat api/fabric-api-jars.txt); do unzip -o -j "$j" 'META-INF/jars/fabric-rendering-v1*' -d api/nested 2>/dev/null || true; done
+          find "$HOME" "$GITHUB_WORKSPACE" api/nested -name 'fabric-rendering-v1*.jar' -not -name '*sources*' 2>/dev/null > api/fabric-render-jars.txt || true
+          FCP=$(tr '\n' ':' < api/fabric-render-jars.txt)
+          CP=$(tr '\n' ':' < api/yarn-jars.txt)
+          for j in $(cat api/fabric-render-jars.txt); do unzip -Z1 "$j"; done | grep '\.class$' | sort -u > api/fabric-classes.txt || true
+          for c in $(grep -E '(world|WorldRender)' api/fabric-classes.txt | grep -v 'impl' | sed 's#\.class$##; s#/#.#g'); do
+            echo "=== $c" >> api/fabric-api.txt
+            javap -cp "$FCP$CP" -public "$c" >> api/fabric-api.txt 2>&1 || true
           done
       - uses: actions/upload-artifact@v4
         if: always()
