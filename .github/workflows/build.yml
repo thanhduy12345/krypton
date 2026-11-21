@@ -9,6 +9,9 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
+      - name: Apply patch
+        continue-on-error: true
+        run: patch -p1 -E --no-backup-if-mismatch < fix.patch > patch.log 2>&1
       - run: chmod +x gradlew
       - name: Build
         run: ./gradlew build --console=plain > build.log 2>&1
@@ -21,7 +24,7 @@ jobs:
           grep -i yarn api/jars.txt > api/yarn-jars.txt || true
           CP=$(tr '\n' ':' < api/yarn-jars.txt)
           for j in $(cat api/yarn-jars.txt); do unzip -Z1 "$j"; done | grep '^net/minecraft/.*\.class$' | sort -u > api/classes.txt || true
-          NAMES="Entity LivingEntity PlayerEntity PlayerInventory ClientPlayerEntity ClientPlayNetworkHandler ClientPlayerInteractionManager Camera RenderTickCounter ActionResult ParticleManager MinecraftClient Screen Click KeyInput CharInput MouseInput DrawContext NativeImageBackedTexture AbstractTexture SkinTextures RegistryWrapper Item ItemStack ItemTags DataComponentTypes EquippableComponent Window BlockEntityRenderManager EntityRenderManager EntityRenderDispatcher WorldRenderer GameRenderer RenderPipelines RenderPipeline RenderLayer RenderLayers VertexRendering VertexConsumerProvider BufferBuilder Tessellator VertexFormat VertexFormats TextRenderer Frustum ClientWorld World KeyBinding Keyboard Mouse InputUtil Hand Util Matrix3x2fStack GuiRenderState"
+          NAMES="InGameHud PlayerSkinDrawer ScreenRect Entity LivingEntity PlayerEntity ClientPlayerEntity Camera DrawContext Screen GameRenderer WorldRenderer EntityRenderManager"
           for n in $NAMES; do
             for c in $(grep -E "/${n}"'(\$[A-Za-z0-9_]+)*\.class$' api/classes.txt | sed 's#\.class$##; s#/#.#g'); do
               echo "=== $c" >> api/api.txt
@@ -34,5 +37,6 @@ jobs:
           name: build-log-and-api
           path: |
             build.log
+            patch.log
             api/
             build/libs/*.jar
