@@ -1,0 +1,2336 @@
+diff -ruN a/src/main/java/skid/krypton/font/Fonts.java b/src/main/java/skid/krypton/font/Fonts.java
+--- a/src/main/java/skid/krypton/font/Fonts.java	2026-11-21 16:08:01.781827181 +0000
++++ b/src/main/java/skid/krypton/font/Fonts.java	1970-01-01 00:00:00.000000000 +0000
+@@ -1,5 +0,0 @@
+-package skid.krypton.font;
+-
+-public final class Fonts {
+-    public static GlyphPageFontRenderer FONT = GlyphPageFontRenderer.init("/font.ttf", 35, false, false, false);
+-}
+\ No newline at end of file
+diff -ruN a/src/main/java/skid/krypton/font/GlyphPage.java b/src/main/java/skid/krypton/font/GlyphPage.java
+--- a/src/main/java/skid/krypton/font/GlyphPage.java	2026-11-21 16:08:01.781838971 +0000
++++ b/src/main/java/skid/krypton/font/GlyphPage.java	1970-01-01 00:00:00.000000000 +0000
+@@ -1,195 +0,0 @@
+-package skid.krypton.font;
+-
+-import com.mojang.blaze3d.systems.RenderSystem;
+-import net.minecraft.client.render.*;
+-import net.minecraft.client.texture.AbstractTexture;
+-import net.minecraft.client.texture.NativeImage;
+-import net.minecraft.client.texture.NativeImageBackedTexture;
+-import net.minecraft.client.util.math.MatrixStack;
+-import org.lwjgl.BufferUtils;
+-
+-import javax.imageio.ImageIO;
+-import java.awt.*;
+-import java.awt.font.FontRenderContext;
+-import java.awt.geom.AffineTransform;
+-import java.awt.geom.Rectangle2D;
+-import java.awt.image.BufferedImage;
+-import java.io.ByteArrayOutputStream;
+-import java.nio.ByteBuffer;
+-import java.util.HashMap;
+-
+-@SuppressWarnings("unused")
+-public final class GlyphPage {
+-    private int imageSize;
+-    private int maxHeight;
+-    private final Font font;
+-    private final boolean antiAlias;
+-    private final boolean fractionalMetrics;
+-    private final HashMap<Character, Glyph> glyphs;
+-    private BufferedImage img;
+-    private AbstractTexture texture;
+-
+-    public GlyphPage(final Font font, final boolean antiAlias, final boolean fractionalMetrics) {
+-        this.maxHeight = -1;
+-        this.glyphs = new HashMap<>();
+-        this.font = font;
+-        this.antiAlias = antiAlias;
+-        this.fractionalMetrics = fractionalMetrics;
+-    }
+-
+-    public void generate(final char[] chars) {
+-        double width = -1.0;
+-        double height = -1.0;
+-
+-        final FontRenderContext frc = new FontRenderContext(new AffineTransform(), this.antiAlias, this.fractionalMetrics);
+-
+-        for (char item : chars) {
+-            final Rectangle2D bounds = this.font.getStringBounds(Character.toString(item), frc);
+-            if (width < bounds.getWidth()) width = bounds.getWidth();
+-            if (height < bounds.getHeight()) height = bounds.getHeight();
+-        }
+-
+-        final double maxWidth = width + 2.0;
+-        final double maxHeight = height + 2.0;
+-        this.imageSize = (int) Math.ceil(Math.max(Math.ceil(Math.sqrt(maxWidth * maxWidth * chars.length) / maxWidth), Math.ceil(Math.sqrt(maxHeight * maxHeight * chars.length) / maxHeight)) * Math.max(maxWidth, maxHeight)) + 1;
+-        this.img = new BufferedImage(this.imageSize, this.imageSize, 2);
+-        final Graphics2D graphics = this.img.createGraphics();
+-        graphics.setFont(this.font);
+-        graphics.setColor(new Color(255, 255, 255, 0));
+-        graphics.fillRect(0, 0, this.imageSize, this.imageSize);
+-        graphics.setColor(Color.white);
+-        graphics.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, fractionalMetrics ? RenderingHints.VALUE_FRACTIONALMETRICS_ON : RenderingHints.VALUE_FRACTIONALMETRICS_OFF);
+-        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, antiAlias ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF);
+-        graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, antiAlias ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+-
+-        final FontMetrics metrics = graphics.getFontMetrics();
+-
+-        int currentHeight = 0;
+-        int posX = 0;
+-        int posY = 1;
+-
+-        for (final char c : chars) {
+-            final Glyph glyph = new Glyph();
+-            final Rectangle2D bounds = metrics.getStringBounds(Character.toString(c), graphics);
+-
+-            glyph.width = bounds.getBounds().width + 8;
+-            glyph.height = bounds.getBounds().height;
+-
+-            if (posX + glyph.width >= this.imageSize) {
+-                posX = 0;
+-                posY += currentHeight;
+-                currentHeight = 0;
+-            }
+-
+-            glyph.x = posX;
+-            glyph.y = posY;
+-
+-            if (glyph.height > this.maxHeight) this.maxHeight = glyph.height;
+-            if (glyph.height > currentHeight) currentHeight = glyph.height;
+-
+-            graphics.drawString(Character.toString(c), posX + 2, posY + metrics.getAscent());
+-            posX += glyph.width;
+-            this.glyphs.put(c, glyph);
+-        }
+-    }
+-
+-    public void setup() {
+-        try {
+-            final ByteArrayOutputStream output = new ByteArrayOutputStream();
+-            ImageIO.write(this.img, "png", output);
+-            final byte[] byteArray = output.toByteArray();
+-            final ByteBuffer data = BufferUtils.createByteBuffer(byteArray.length).put(byteArray);
+-            data.flip();
+-            this.texture = new NativeImageBackedTexture(NativeImage.read(data));
+-        } catch (Throwable _t) {
+-            _t.printStackTrace(System.err);
+-        }
+-    }
+-
+-    public void bind() {
+-        RenderSystem.setShaderTexture(0, this.texture.getGlId());
+-    }
+-
+-    public void unbind() {
+-        RenderSystem.setShaderTexture(0, 0);
+-    }
+-
+-    public float drawChar(MatrixStack stack, char ch, float x, float y, float r, float b, float g, float alpha) {
+-        final Glyph glyph = glyphs.get(ch);
+-        if (glyph == null) return 0;
+-
+-        final float pageX = glyph.x / (float) imageSize;
+-        final float pageY = glyph.y / (float) imageSize;
+-
+-        final float pageWidth = glyph.width / (float) imageSize;
+-        final float pageHeight = glyph.height / (float) imageSize;
+-
+-        final float width = glyph.width;
+-        final float height = glyph.height;
+-
+-        RenderSystem.setShader(GameRenderer::getPositionTexColorProgram);
+-
+-        bind();
+-
+-        BufferBuilder builder = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
+-
+-        builder.vertex(stack.peek().getPositionMatrix(), x, y + height, 0).color(r, g, b, alpha).texture(pageX, pageY + pageHeight);
+-        builder.vertex(stack.peek().getPositionMatrix(), x + width, y + height, 0).color(r, g, b, alpha).texture(pageX + pageWidth, pageY + pageHeight);
+-        builder.vertex(stack.peek().getPositionMatrix(), x + width, y, 0).color(r, g, b, alpha).texture(pageX + pageWidth, pageY);
+-        builder.vertex(stack.peek().getPositionMatrix(), x, y, 0).color(r, g, b, alpha).texture(pageX, pageY);
+-
+-        BufferRenderer.drawWithGlobalProgram(builder.end());
+-
+-        unbind();
+-
+-        return width - 8;
+-    }
+-
+-    public float getWidth(final char c) {
+-        return (float) this.glyphs.get(c).width;
+-    }
+-
+-    public boolean isAntiAlias() {
+-        return this.antiAlias;
+-    }
+-
+-    public boolean isFractionalMetrics() {
+-        return this.fractionalMetrics;
+-    }
+-
+-    public int getMaxHeight() {
+-        return this.maxHeight;
+-    }
+-
+-    public static final class Glyph {
+-        private int x;
+-        private int y;
+-        private int width;
+-        private int height;
+-
+-        Glyph(int x, int y, int width, int height) {
+-            this.x = x;
+-            this.y = y;
+-            this.width = width;
+-            this.height = height;
+-        }
+-
+-        Glyph() {}
+-
+-        public int getX() {
+-            return this.x;
+-        }
+-
+-        public int getY() {
+-            return this.y;
+-        }
+-
+-        public int getWidth() {
+-            return this.width;
+-        }
+-
+-        public int getHeight() {
+-            return this.height;
+-        }
+-    }
+-}
+\ No newline at end of file
+diff -ruN a/src/main/java/skid/krypton/font/GlyphPageFontRenderer.java b/src/main/java/skid/krypton/font/GlyphPageFontRenderer.java
+--- a/src/main/java/skid/krypton/font/GlyphPageFontRenderer.java	2026-11-21 16:08:01.781853555 +0000
++++ b/src/main/java/skid/krypton/font/GlyphPageFontRenderer.java	1970-01-01 00:00:00.000000000 +0000
+@@ -1,422 +0,0 @@
+-package skid.krypton.font;
+-
+-import com.mojang.blaze3d.platform.GlStateManager;
+-import net.minecraft.client.render.*;
+-import net.minecraft.client.util.math.MatrixStack;
+-import skid.krypton.utils.EncryptedString;
+-
+-import java.awt.*;
+-import java.util.Objects;
+-import java.util.Random;
+-
+-import static org.lwjgl.opengl.GL11.*;
+-
+-public final class GlyphPageFontRenderer {
+-    public Random random;
+-    private float posX;
+-    private float posY;
+-    private final int[] colorCode;
+-    private boolean isBold;
+-    private boolean isItalic;
+-    private boolean isUnderline;
+-    private boolean isStrikethrough;
+-    private final GlyphPage regular;
+-    private final GlyphPage bold;
+-    private final GlyphPage italic;
+-    private final GlyphPage boldItalic;
+-
+-    public GlyphPageFontRenderer(final GlyphPage regular, final GlyphPage bold, final GlyphPage italic, final GlyphPage boldItalic) {
+-        this.random = new Random();
+-        this.colorCode = new int[32];
+-        this.regular = regular;
+-        this.bold = bold;
+-        this.italic = italic;
+-        this.boldItalic = boldItalic;
+-
+-        for (int n = 0; n < 32; ++n) {
+-            int j = (n >> 3 & 0x1) * 85;
+-            int k = (n >> 2 & 0x1) * 170 + j;
+-            int l = (n >> 1 & 0x1) * 170 + j;
+-            int m = (n & 0x1) * 170 + j;
+-
+-            if (n == 6) k += 85;
+-
+-            if (n >= 16) {
+-                k /= 4;
+-                l /= 4;
+-                m /= 4;
+-            }
+-
+-            this.colorCode[n] = ((k & 0xFF) << 16 | (l & 0xFF) << 8 | (m & 0xFF));
+-        }
+-    }
+-
+-    public static GlyphPageFontRenderer a(final CharSequence font, final int size, final boolean bold, final boolean italic, final boolean boldItalic) {
+-        final char[] chars = new char[256];
+-        for (int i = 0; i < 256; ++i) chars[i] = (char) i;
+-        final GlyphPage regularPage = new GlyphPage(new Font(font.toString(), Font.PLAIN, size), true, true);
+-        regularPage.generate(chars);
+-        regularPage.setup();
+-
+-        GlyphPage boldPage = regularPage;
+-        GlyphPage italicPage = regularPage;
+-        GlyphPage boldItalicPage = regularPage;
+-
+-        if (bold) {
+-            boldPage = new GlyphPage(new Font(font.toString(), Font.BOLD, size), true, true);
+-            boldPage.generate(chars);
+-            boldPage.setup();
+-        }
+-
+-        if (italic) {
+-            italicPage = new GlyphPage(new Font(font.toString(), Font.ITALIC, size), true, true);
+-            italicPage.generate(chars);
+-            italicPage.setup();
+-        }
+-
+-        if (boldItalic) {
+-            boldItalicPage = new GlyphPage(new Font(font.toString(), Font.BOLD | Font.ITALIC, size), true, true);
+-            boldItalicPage.generate(chars);
+-            boldItalicPage.setup();
+-        }
+-
+-        return new GlyphPageFontRenderer(regularPage, boldPage, italicPage, boldItalicPage);
+-    }
+-
+-    public static GlyphPageFontRenderer init(final CharSequence id, final int size, final boolean bold, final boolean italic, final boolean boldItalic) {
+-        try {
+-            final char[] chars = new char[256];
+-            for (int i = 0; i < chars.length; i++) chars[i] = (char) i;
+-
+-            Font font = Font.createFont(Font.TRUETYPE_FONT, Objects.requireNonNull(GlyphPageFontRenderer.class.getResourceAsStream(id.toString()))).deriveFont(Font.PLAIN, size);
+-
+-            GlyphPage regularPage = new GlyphPage(font, true, true);
+-            regularPage.generate(chars);
+-            regularPage.setup();
+-
+-            GlyphPage boldPage = regularPage;
+-            GlyphPage italicPage = regularPage;
+-            GlyphPage boldItalicPage = regularPage;
+-
+-            if (bold) {
+-                boldPage = new GlyphPage(Font.createFont(Font.TRUETYPE_FONT, Objects.requireNonNull(GlyphPageFontRenderer.class.getResourceAsStream(id.toString()))).deriveFont(Font.BOLD, size), true, true);
+-                boldPage.generate(chars);
+-                boldPage.setup();
+-            }
+-
+-            if (italic) {
+-                italicPage = new GlyphPage(Font.createFont(Font.TRUETYPE_FONT, Objects.requireNonNull(GlyphPageFontRenderer.class.getResourceAsStream(id.toString()))).deriveFont(Font.ITALIC, size), true, true);
+-                italicPage.generate(chars);
+-                italicPage.setup();
+-            }
+-
+-            if (boldItalic) {
+-                boldItalicPage = new GlyphPage(Font.createFont(Font.TRUETYPE_FONT, Objects.requireNonNull(GlyphPageFontRenderer.class.getResourceAsStream(id.toString()))).deriveFont(Font.BOLD | Font.ITALIC, size), true, true);
+-                boldItalicPage.generate(chars);
+-                boldItalicPage.setup();
+-            }
+-
+-            return new GlyphPageFontRenderer(regularPage, boldPage, italicPage, boldItalicPage);
+-        } catch (Throwable _t) {
+-            _t.printStackTrace(System.err);
+-            return null;
+-        }
+-    }
+-
+-    public int drawStringWithShadow(final MatrixStack matrices, final CharSequence text, final float x, final float y, final int color) {
+-        return this.drawString(matrices, text, x, y, color, true);
+-    }
+-
+-    public int drawStringWithShadow(final MatrixStack matrices, final CharSequence text, final double x, final double y, final int color) {
+-        return this.drawString(matrices, text, (float) x, (float) y, color, true);
+-    }
+-
+-    public int drawString(final MatrixStack matrices, final CharSequence text, final float x, final float y, final int color) {
+-        return this.drawString(matrices, text, x, y, color, false);
+-    }
+-
+-    public int drawString(final MatrixStack matrices, final CharSequence text, final double x, final double y, final int color) {
+-        return this.drawString(matrices, text, (float) x, (float) y, color, false);
+-    }
+-
+-    public int drawCenteredString(final MatrixStack matrices, final CharSequence text, final double x, final double y, final float scale, final int color) {
+-        return this.drawString(matrices, text, (float) x - this.getStringWidth(text) / 2, (float) y, scale, color, false);
+-    }
+-
+-    public int drawCenteredString(final MatrixStack matrices, final CharSequence text, final double x, final double y, final int color) {
+-        return this.drawString(matrices, text, (float) x - this.getStringWidth(text) / 2, (float) y, color, false);
+-    }
+-
+-    public int drawCenteredStringWithShadow(final MatrixStack matrices, final CharSequence text, final double x, final double y, final int color) {
+-        return this.drawString(matrices, text, (float) x - this.getStringWidth(text) / 2, (float) y, color, true);
+-    }
+-
+-    public int drawString(final MatrixStack matrices, final CharSequence text, final float x, final float y, final float scale, final int color, final boolean shadow) {
+-        this.resetStyles();
+-        return shadow ? Math.max(this.renderString(matrices, text, x + 1.0f, y + 1.0f, scale, color, true), this.renderString(matrices, text, x, y, scale, color, false)) : this.renderString(matrices, text, x, y, scale, color, false);
+-    }
+-
+-    public int drawString(final MatrixStack matrices, final CharSequence text, final float x, final float y, final int color, final boolean shadow) {
+-        this.resetStyles();
+-        return shadow ? Math.max(this.renderString(matrices, text, x + 1.0f, y + 1.0f, color, true), this.renderString(matrices, text, x, y, color, false)) : this.renderString(matrices, text, x, y, color, false);
+-    }
+-
+-    private int renderString(final MatrixStack matrices, final CharSequence text, final float x, final float y, int color, final boolean shadow) {
+-        if (text == null) return 0;
+-        if ((color & 0xFC000000) == 0x0) color |= 0xFF000000;
+-        if (shadow) color = ((color & 0xFCFCFC) >> 2 | (color & 0xFF000000));
+-        this.posX = x * 2.0f;
+-        this.posY = y * 2.0f;
+-        this.a(matrices, text, shadow, color);
+-        return (int) (this.posX / 4.0f);
+-    }
+-
+-    private int renderString(final MatrixStack matrices, final CharSequence text, final float x, final float y, final float scale, int color, final boolean shadow) {
+-        if (text == null) return 0;
+-        if ((color & 0xFC000000) == 0x0) color |= 0xFF000000;
+-        if (shadow) color = ((color & 0xFCFCFC) >> 2 | (color & 0xFF000000));
+-        this.posX = x * 2.0f;
+-        this.posY = y * 2.0f;
+-        this.renderStringAtPos(matrices, text, scale, shadow, color);
+-        return (int) (this.posX / 4.0f);
+-    }
+-
+-    private void a(final MatrixStack matrices, final CharSequence text, final boolean shadow, final int color) {
+-        GlyphPage page = this.getPage();
+-
+-        float g = (color >> 16 & 0xFF) / 255.0f;
+-        float h = (color >> 8 & 0xFF) / 255.0f;
+-        float k = (color & 0xFF) / 255.0f;
+-
+-        matrices.push();
+-        matrices.scale(0.5f, 0.5f, 0.5f);
+-
+-        GlStateManager._enableBlend();
+-        GlStateManager._blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+-
+-        page.bind();
+-
+-        GlStateManager._texParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+-
+-        for (int i = 0; i < text.length(); ++i) {
+-            final char ch = text.charAt(i);
+-
+-            if (ch == '�' && i + 1 < text.length()) {
+-                int index = "0123456789abcdefklmnor".indexOf(Character.toLowerCase(text.charAt(i + 1)));
+-
+-                if (index < 16) {
+-                    this.isBold = false;
+-                    this.isStrikethrough = false;
+-                    this.isUnderline = false;
+-                    this.isItalic = false;
+-                    if (index < 0) index = 15;
+-                    if (shadow) index += 16;
+-                    final int j1 = this.colorCode[index];
+-                    g = (j1 >> 16 & 0xFF) / 255.0f;
+-                    h = (j1 >> 8 & 0xFF) / 255.0f;
+-                    k = (j1 & 0xFF) / 255.0f;
+-                } else if (index != 16) {
+-                    if (index == 17) this.isBold = true;
+-                    else if (index == 18) this.isStrikethrough = true;
+-                    else if (index == 19) this.isUnderline = true;
+-                    else if (index == 20) this.isItalic = true;
+-                    else {
+-                        this.isBold = false;
+-                        this.isStrikethrough = false;
+-                        this.isUnderline = false;
+-                        this.isItalic = false;
+-                    }
+-                }
+-
+-                ++i;
+-            } else {
+-                page = this.getPage();
+-                page.bind();
+-                this.doDraw(page.drawChar(matrices, ch, this.posX, this.posY, g, k, h, (color >> 24 & 0xFF) / 255.0f), page);
+-            }
+-        }
+-
+-        page.unbind();
+-        matrices.pop();
+-    }
+-
+-    private void renderStringAtPos(final MatrixStack matrices, final CharSequence text, final float scale, final boolean shadow, final int color) {
+-        GlyphPage page = this.getPage();
+-
+-        float g = (color >> 16 & 0xFF) / 255.0f;
+-        float h = (color >> 8 & 0xFF) / 255.0f;
+-        float k = (color & 0xFF) / 255.0f;
+-
+-        matrices.push();
+-        matrices.scale(scale, scale, scale);
+-
+-        GlStateManager._enableBlend();
+-        GlStateManager._blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+-
+-        page.bind();
+-
+-        GlStateManager._texParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+-
+-        for (int i = 0; i < text.length(); ++i) {
+-            final char ch = text.charAt(i);
+-
+-            if (ch == '�' && i + 1 < text.length()) {
+-                int index = "0123456789abcdefklmnor".indexOf(Character.toLowerCase(text.charAt(i + 1)));
+-
+-                if (index < 16) {
+-                    this.isBold = false;
+-                    this.isStrikethrough = false;
+-                    this.isUnderline = false;
+-                    this.isItalic = false;
+-                    if (index < 0) index = 15;
+-                    if (shadow) index += 16;
+-                    final int j1 = this.colorCode[index];
+-                    g = (j1 >> 16 & 0xFF) / 255.0f;
+-                    h = (j1 >> 8 & 0xFF) / 255.0f;
+-                    k = (j1 & 0xFF) / 255.0f;
+-                } else if (index != 16) {
+-                    if (index == 17) this.isBold = true;
+-                    else if (index == 18) this.isStrikethrough = true;
+-                    else if (index == 19) this.isUnderline = true;
+-                    else if (index == 20) this.isItalic = true;
+-                    else {
+-                        this.isBold = false;
+-                        this.isStrikethrough = false;
+-                        this.isUnderline = false;
+-                        this.isItalic = false;
+-                    }
+-                }
+-
+-                ++i;
+-            } else {
+-                page = this.getPage();
+-                page.bind();
+-                this.doDraw(page.drawChar(matrices, ch, this.posX, this.posY, g, k, h, (color >> 24 & 0xFF) / 255.0f), page);
+-            }
+-        }
+-        page.unbind();
+-        matrices.pop();
+-    }
+-
+-    private void doDraw(final float f, final GlyphPage page) {
+-        if (this.isStrikethrough) {
+-            final BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
+-
+-            buffer.vertex(this.posX, this.posY + page.getMaxHeight() / 2, 0.0f);
+-            buffer.vertex(this.posX + f, this.posY + page.getMaxHeight() / 2, 0.0f);
+-            buffer.vertex(this.posX + f, this.posY + page.getMaxHeight() / 2 - 1.0f, 0.0f);
+-            buffer.vertex(this.posX, this.posY + page.getMaxHeight() / 2 - 1.0f, 0.0f);
+-
+-            BufferRenderer.drawWithGlobalProgram(buffer.end());
+-        }
+-        
+-        if (this.isUnderline) {
+-            final BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
+-            final int l = this.isUnderline ? -1 : 0;
+-
+-            buffer.vertex(this.posX + l, this.posY + page.getMaxHeight(), 0.0f);
+-            buffer.vertex(this.posX + f, this.posY + page.getMaxHeight(), 0.0f);
+-            buffer.vertex(this.posX + f, this.posY + page.getMaxHeight() - 1.0f, 0.0f);
+-            buffer.vertex(this.posX + l, this.posY + page.getMaxHeight() - 1.0f, 0.0f);
+-
+-            BufferRenderer.drawWithGlobalProgram(buffer.end());
+-        }
+-
+-        this.posX += f;
+-    }
+-
+-    private GlyphPage getPage() {
+-        if (this.isBold && this.isItalic) return this.boldItalic;
+-        if (this.isBold) return this.bold;
+-        if (this.isItalic) return this.italic;
+-        return this.regular;
+-    }
+-
+-    private void resetStyles() {
+-        this.isBold = false;
+-        this.isItalic = false;
+-        this.isUnderline = false;
+-        this.isStrikethrough = false;
+-    }
+-
+-    public int getHeight() {
+-        return this.regular.getMaxHeight() / 2;
+-    }
+-
+-    public int getStringWidth(final CharSequence text) {
+-        if (text == null) return 0;
+-
+-        int width = 0;
+-        boolean on = false;
+-
+-        for (int i = 0; i < text.length(); ++i) {
+-            final char ch = text.charAt(i);
+-
+-            if (ch == '\ufffd') on = true;
+-            else if (on && ch >= '0' && ch <= 'r') {
+-                final int index = "0123456789abcdefklmnor".indexOf(ch);
+-                if (index < 16) {
+-                    this.isBold = false;
+-                    this.isItalic = false;
+-                } else if (index == 17) this.isBold = true;
+-                else if (index == 20) this.isItalic = true;
+-                else if (index == 21) {
+-                    this.isBold = false;
+-                    this.isItalic = false;
+-                }
+-
+-                ++i;
+-                on = false;
+-            } else {
+-                if (on) --i;
+-                width += (int) (this.getPage().getWidth(text.charAt(i)) - 8.0f);
+-            }
+-        }
+-
+-        return width / 2;
+-    }
+-
+-    public CharSequence trimStringToWidth(final CharSequence text, final int width) {
+-        return this.trimStringToWidth(text, width, false);
+-    }
+-
+-    public CharSequence trimStringToWidth(final CharSequence text, final int maxWidth, final boolean reverse) {
+-        final StringBuilder sb = new StringBuilder();
+-        boolean on = false;
+-        int j = reverse ? text.length() - 1 : 0;
+-        int k = reverse ? -1 : 1;
+-        int width = 0;
+-
+-        while (j >= 0 && j < text.length() && j < maxWidth) {
+-            char ch = text.charAt(j);
+-            if (ch == '\ufffd') on = true;
+-            else if (on && ch >= '0' && ch <= 'r') {
+-                final int index = "0123456789abcdefklmnor".indexOf(ch);
+-                if (index < 16) {
+-                    this.isBold = false;
+-                    this.isItalic = false;
+-                } else if (index == 17) this.isBold = true;
+-                else if (index == 20) this.isItalic = true;
+-                else if (index == 21) {
+-                    this.isBold = false;
+-                    this.isItalic = false;
+-                }
+-                ++j;
+-                on = false;
+-            } else {
+-                if (on) --j;
+-                ch = text.charAt(j);
+-                width += (int) ((this.getPage().getWidth(ch) - 8.0f) / 2.0f);
+-            }
+-
+-            if (j > width) break;
+-
+-            if (reverse) sb.insert(0, ch);
+-            else sb.append(ch);
+-
+-            j += k;
+-        }
+-
+-        return EncryptedString.of(sb.toString());
+-    }
+-}
+\ No newline at end of file
+diff -ruN a/src/main/java/skid/krypton/gui/ClickGUI.java b/src/main/java/skid/krypton/gui/ClickGUI.java
+--- a/src/main/java/skid/krypton/gui/ClickGUI.java	2026-11-21 16:08:01.781899077 +0000
++++ b/src/main/java/skid/krypton/gui/ClickGUI.java	2026-11-21 16:08:01.786198612 +0000
+@@ -87,6 +87,7 @@
+             if (Krypton.mc.currentScreen instanceof ClickGUI) {
+                 drawContext.fill(0, 0, Krypton.mc.getWindow().getWidth(), Krypton.mc.getWindow().getHeight(), this.currentColor.getRGB());
+             }
++            RenderUtils.currentContext = drawContext;
+             RenderUtils.unscaledProjection();
+             final int n6 = n * (int) MinecraftClient.getInstance().getWindow().getScaleFactor();
+             final int n7 = n2 * (int) MinecraftClient.getInstance().getWindow().getScaleFactor();
+@@ -103,12 +104,32 @@
+         }
+     }
+ 
++    @Override
++    public boolean keyPressed(final net.minecraft.client.input.KeyInput input) {
++        return this.keyPressed(input.key(), input.scancode(), input.modifiers());
++    }
++
++    @Override
++    public boolean mouseClicked(final net.minecraft.client.gui.Click click, final boolean doubled) {
++        return this.mouseClicked(click.x(), click.y(), click.button());
++    }
++
++    @Override
++    public boolean mouseDragged(final net.minecraft.client.gui.Click click, final double dx, final double dy) {
++        return this.mouseDragged(click.x(), click.y(), click.button(), dx, dy);
++    }
++
++    @Override
++    public boolean mouseReleased(final net.minecraft.client.gui.Click click) {
++        return this.mouseReleased(click.x(), click.y(), click.button());
++    }
++
+     public boolean keyPressed(final int n, final int n2, final int n3) {
+         final Iterator<CategoryWindow> iterator = this.windows.iterator();
+         while (iterator.hasNext()) {
+             iterator.next().keyPressed(n, n2, n3);
+         }
+-        return super.keyPressed(n, n2, n3);
++        return super.keyPressed(new net.minecraft.client.input.KeyInput(n, n2, n3));
+     }
+ 
+     public boolean mouseClicked(final double n, final double n2, final int n3) {
+@@ -118,7 +139,7 @@
+         while (iterator.hasNext()) {
+             iterator.next().mouseClicked(n4, n5, n3);
+         }
+-        return super.mouseClicked(n4, n5, n3);
++        return super.mouseClicked(new net.minecraft.client.gui.Click(n4, n5, new net.minecraft.client.input.MouseInput(n3, 0)), false);
+     }
+ 
+     public boolean mouseDragged(final double n, final double n2, final int n3, final double n4, final double n5) {
+@@ -128,7 +149,7 @@
+         while (iterator.hasNext()) {
+             iterator.next().mouseDragged(n6, n7, n3, n4, n5);
+         }
+-        return super.mouseDragged(n6, n7, n3, n4, n5);
++        return super.mouseDragged(new net.minecraft.client.gui.Click(n6, n7, new net.minecraft.client.input.MouseInput(n3, 0)), n4, n5);
+     }
+ 
+     public boolean mouseScrolled(final double n, final double n2, final double n3, final double n4) {
+@@ -165,7 +186,7 @@
+         while (iterator.hasNext()) {
+             iterator.next().mouseReleased(n4, n5, n3);
+         }
+-        return super.mouseReleased(n4, n5, n3);
++        return super.mouseReleased(new net.minecraft.client.gui.Click(n4, n5, new net.minecraft.client.input.MouseInput(n3, 0)));
+     }
+ 
+     private void renderTooltip(final DrawContext drawContext, final CharSequence charSequence, int n, final int n2) {
+diff -ruN a/src/main/java/skid/krypton/gui/components/ItemFilter.java b/src/main/java/skid/krypton/gui/components/ItemFilter.java
+--- a/src/main/java/skid/krypton/gui/components/ItemFilter.java	2026-11-21 16:08:01.782006828 +0000
++++ b/src/main/java/skid/krypton/gui/components/ItemFilter.java	2026-11-21 16:08:01.786279743 +0000
+@@ -57,6 +57,7 @@
+     }
+ 
+     public void render(final DrawContext drawContext, final int n, final int n2, final float n3) {
++        RenderUtils.currentContext = drawContext;
+         RenderUtils.unscaledProjection();
+         final int n4 = n * (int) MinecraftClient.getInstance().getWindow().getScaleFactor();
+         final int n5 = n2 * (int) MinecraftClient.getInstance().getWindow().getScaleFactor();
+@@ -137,6 +138,11 @@
+         RenderUtils.scaledProjection();
+     }
+ 
++    @Override
++    public boolean mouseClicked(final net.minecraft.client.gui.Click click, final boolean doubled) {
++        return this.mouseClicked(click.x(), click.y(), click.button());
++    }
++
+     public boolean mouseClicked(final double n, final double n2, final int n3) {
+         final double n4 = n * MinecraftClient.getInstance().getWindow().getScaleFactor();
+         final double n5 = n2 * MinecraftClient.getInstance().getWindow().getScaleFactor();
+@@ -201,6 +207,11 @@
+         return super.mouseScrolled(n5, n6, n3, n4);
+     }
+ 
++    @Override
++    public boolean keyPressed(final net.minecraft.client.input.KeyInput input) {
++        return this.keyPressed(input.key(), input.scancode(), input.modifiers());
++    }
++
+     public boolean keyPressed(final int n, final int n2, final int n3) {
+         if (n == 256) {
+             if (this.selectedIndex >= 0 && this.selectedIndex < this.filteredItems.size()) {
+@@ -254,6 +265,11 @@
+         return super.keyPressed(n, n2, n3);
+     }
+ 
++    @Override
++    public boolean charTyped(final net.minecraft.client.input.CharInput input) {
++        return this.charTyped((char) input.codepoint(), input.modifiers());
++    }
++
+     public boolean charTyped(final char c, final int n) {
+         this.searchQuery += c;
+         this.updateFilteredItems();
+diff -ruN a/src/main/java/skid/krypton/gui/components/Keybind.java b/src/main/java/skid/krypton/gui/components/Keybind.java
+--- a/src/main/java/skid/krypton/gui/components/Keybind.java	2026-11-21 16:08:01.782987314 +0000
++++ b/src/main/java/skid/krypton/gui/components/Keybind.java	2026-11-21 16:08:01.786295554 +0000
+@@ -37,7 +37,7 @@
+     @Override
+     public void render(final DrawContext drawContext, final int n, final int n2, final float n3) {
+         super.render(drawContext, n, n2, n3);
+-        final MatrixStack matrices = drawContext.getMatrices();
++        final org.joml.Matrix3x2fStack matrices = drawContext.getMatrices();
+         this.updateAnimations(n, n2, n3);
+         if (!this.parent.parent.dragging) {
+             drawContext.fill(this.parentX(), this.parentY() + this.parentOffset() + this.offset, this.parentX() + this.parentWidth(), this.parentY() + this.parentOffset() + this.offset + this.parentHeight(), new Color(Keybind.HOVER_COLOR.getRed(), Keybind.HOVER_COLOR.getGreen(), Keybind.HOVER_COLOR.getBlue(), (int) (Keybind.HOVER_COLOR.getAlpha() * this.hoverAnimation)).getRGB());
+diff -ruN a/src/main/java/skid/krypton/gui/components/ModuleButton.java b/src/main/java/skid/krypton/gui/components/ModuleButton.java
+--- a/src/main/java/skid/krypton/gui/components/ModuleButton.java	2026-11-21 16:08:01.783026237 +0000
++++ b/src/main/java/skid/krypton/gui/components/ModuleButton.java	2026-11-21 16:08:01.786322723 +0000
+@@ -158,13 +158,13 @@
+     private void renderSettings(final DrawContext drawContext, final int n, final int n2, final float n3) {
+         final int n4 = this.parent.getY() + this.offset + this.parent.getHeight();
+         final double animation = this.animation.getAnimation();
+-        RenderSystem.enableScissor(this.parent.getX(), Krypton.mc.getWindow().getHeight() - (n4 + (int) animation), this.parent.getWidth(), (int) animation);
++        drawContext.enableScissor(this.parent.getX(), n4, this.parent.getX() + this.parent.getWidth(), n4 + (int) animation);
+         final Iterator<Component> iterator = this.settings.iterator();
+         while (iterator.hasNext()) {
+             iterator.next().render(drawContext, n, n2 - n4, n3);
+         }
+         this.renderSliderControls(drawContext);
+-        RenderSystem.disableScissor();
++        drawContext.disableScissor();
+     }
+ 
+     private void renderSliderControls(final DrawContext drawContext) {
+diff -ruN a/src/main/java/skid/krypton/gui/components/Slider.java b/src/main/java/skid/krypton/gui/components/Slider.java
+--- a/src/main/java/skid/krypton/gui/components/Slider.java	2026-11-21 16:08:01.783056296 +0000
++++ b/src/main/java/skid/krypton/gui/components/Slider.java	2026-11-21 16:08:01.786349215 +0000
+@@ -45,7 +45,7 @@
+     @Override
+     public void render(final DrawContext drawContext, final int n, final int n2, final float n3) {
+         super.render(drawContext, n, n2, n3);
+-        final MatrixStack matrices = drawContext.getMatrices();
++        final org.joml.Matrix3x2fStack matrices = drawContext.getMatrices();
+         this.updateAnimations(n, n2, n3);
+         this.offsetMinX = (this.setting.getCurrentMin() - this.setting.getMinValue()) / (this.setting.getMaxValue() - this.setting.getMinValue()) * (this.parentWidth() - 10) + 5.0;
+         this.offsetMaxX = (this.setting.getCurrentMax() - this.setting.getMinValue()) / (this.setting.getMaxValue() - this.setting.getMinValue()) * (this.parentWidth() - 10) + 5.0;
+diff -ruN a/src/main/java/skid/krypton/gui/components/StringBox.java b/src/main/java/skid/krypton/gui/components/StringBox.java
+--- a/src/main/java/skid/krypton/gui/components/StringBox.java	2026-11-21 16:08:01.783071388 +0000
++++ b/src/main/java/skid/krypton/gui/components/StringBox.java	2026-11-21 16:08:01.786361802 +0000
+@@ -38,6 +38,7 @@
+     }
+ 
+     public void render(final DrawContext drawContext, final int n, final int n2, final float n3) {
++        RenderUtils.currentContext = drawContext;
+         RenderUtils.unscaledProjection();
+         super.render(drawContext, n * (int) MinecraftClient.getInstance().getWindow().getScaleFactor(), n2 * (int) MinecraftClient.getInstance().getWindow().getScaleFactor(), n3);
+         final long currentTimeMillis = System.currentTimeMillis();
+@@ -109,6 +110,11 @@
+         this.lastCursorBlink = System.currentTimeMillis();
+     }
+ 
++    @Override
++    public boolean mouseClicked(final net.minecraft.client.gui.Click click, final boolean doubled) {
++        return this.mouseClicked(click.x(), click.y(), click.button());
++    }
++
+     public boolean mouseClicked(final double n, final double n2, final int n3) {
+         final double n4 = n * MinecraftClient.getInstance().getWindow().getScaleFactor();
+         final double n5 = n2 * MinecraftClient.getInstance().getWindow().getScaleFactor();
+@@ -126,13 +132,18 @@
+             this.this$0.mc.setScreen(skid.krypton.Krypton.INSTANCE.GUI);
+             return true;
+         }
+-        return super.mouseClicked(n4, n5, n3);
++        return super.mouseClicked(new net.minecraft.client.gui.Click(n4, n5, new net.minecraft.client.input.MouseInput(n3, 0)), false);
+     }
+ 
+     private boolean isHovered(final double n, final double n2, final int n3, final int n4, final int n5, final int n6) {
+         return n >= n3 && n <= n3 + n5 && n2 >= n4 && n2 <= n4 + n6;
+     }
+ 
++    @Override
++    public boolean keyPressed(final net.minecraft.client.input.KeyInput input) {
++        return this.keyPressed(input.key(), input.scancode(), input.modifiers());
++    }
++
+     public boolean keyPressed(final int n, final int n2, final int n3) {
+         this.cursorVisible = true;
+         this.lastCursorBlink = System.currentTimeMillis();
+@@ -247,7 +258,12 @@
+             this.cursorPosition = this.content.length();
+             return true;
+         }
+-        return super.keyPressed(n, n2, n3);
++        return super.keyPressed(new net.minecraft.client.input.KeyInput(n, n2, n3));
++    }
++
++    @Override
++    public boolean charTyped(final net.minecraft.client.input.CharInput input) {
++        return this.charTyped((char) input.codepoint(), input.modifiers());
+     }
+ 
+     public boolean charTyped(final char c, final int n) {
+@@ -279,7 +295,7 @@
+ 
+     public static boolean hasControlDown() {
+         int n;
+-        if (MinecraftClient.IS_SYSTEM_MAC) {
++        if (System.getProperty("os.name", "").toLowerCase().contains("mac")) {
+             n = GLFW.glfwGetKey(MinecraftClient.getInstance().getWindow().getHandle(), 343);
+         } else {
+             n = GLFW.glfwGetKey(MinecraftClient.getInstance().getWindow().getHandle(), 341);
+diff -ruN a/src/main/java/skid/krypton/mixin/EntityRenderDispatcherMixin.java b/src/main/java/skid/krypton/mixin/EntityRenderDispatcherMixin.java
+--- a/src/main/java/skid/krypton/mixin/EntityRenderDispatcherMixin.java	2026-11-21 16:08:01.783352408 +0000
++++ b/src/main/java/skid/krypton/mixin/EntityRenderDispatcherMixin.java	1970-01-01 00:00:00.000000000 +0000
+@@ -1,19 +0,0 @@
+-package skid.krypton.mixin;
+-
+-import net.minecraft.client.render.entity.EntityRenderDispatcher;
+-import net.minecraft.util.math.Box;
+-import org.spongepowered.asm.mixin.Mixin;
+-import org.spongepowered.asm.mixin.injection.At;
+-import org.spongepowered.asm.mixin.injection.ModifyVariable;
+-import skid.krypton.Krypton;
+-import skid.krypton.module.Module;
+-import skid.krypton.module.modules.combat.Hitbox;
+-
+-@Mixin({EntityRenderDispatcher.class})
+-public class EntityRenderDispatcherMixin {
+-    @ModifyVariable(method = {"renderHitbox"}, ordinal = 0, at = @At(value = "STORE", ordinal = 0))
+-    private static Box onRenderHitboxEditBox(final Box box) {
+-        final Module hitboxes = Krypton.INSTANCE.MODULE_MANAGER.getModuleByClass(Hitbox.class);
+-        return hitboxes.isEnabled() ? box.expand(((Hitbox) hitboxes).getHitboxExpansion()) : box;
+-    }
+-}
+\ No newline at end of file
+diff -ruN a/src/main/java/skid/krypton/mixin/GameRendererMixin.java b/src/main/java/skid/krypton/mixin/GameRendererMixin.java
+--- a/src/main/java/skid/krypton/mixin/GameRendererMixin.java	2026-11-21 16:08:01.783370389 +0000
++++ b/src/main/java/skid/krypton/mixin/GameRendererMixin.java	1970-01-01 00:00:00.000000000 +0000
+@@ -1,39 +0,0 @@
+-package skid.krypton.mixin;
+-
+-import net.minecraft.client.render.Camera;
+-import net.minecraft.client.render.GameRenderer;
+-import net.minecraft.client.render.RenderTickCounter;
+-import net.minecraft.client.util.math.MatrixStack;
+-import org.joml.Matrix4f;
+-import org.spongepowered.asm.mixin.Final;
+-import org.spongepowered.asm.mixin.Mixin;
+-import org.spongepowered.asm.mixin.Shadow;
+-import org.spongepowered.asm.mixin.injection.At;
+-import org.spongepowered.asm.mixin.injection.Inject;
+-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+-import skid.krypton.Krypton;
+-import skid.krypton.event.events.Render3DEvent;
+-import skid.krypton.manager.EventManager;
+-import skid.krypton.module.modules.misc.Freecam;
+-
+-@Mixin({GameRenderer.class})
+-public abstract class GameRendererMixin {
+-    @Shadow protected abstract double getFov(Camera camera, float tickDelta, boolean changingFov);
+-
+-    @Shadow public abstract Matrix4f getBasicProjectionMatrix(double fov);
+-
+-    @Shadow @Final private Camera camera;
+-
+-    @Inject(method = {"renderWorld"}, at = {@At(value = "INVOKE", target = "Lnet/minecraft/util/profiler/Profiler;swap(Ljava/lang/String;)V", ordinal = 1)})
+-    private void onWorldRender(final RenderTickCounter rtc, final CallbackInfo ci) {
+-        EventManager.b(new Render3DEvent(new MatrixStack(), this.getBasicProjectionMatrix(this.getFov(this.camera, rtc.getTickDelta(true), true)), rtc.getTickDelta(true)));
+-    }
+-
+-    @Inject(method = {"shouldRenderBlockOutline"}, at = {@At("HEAD")}, cancellable = true)
+-    private void onShouldRenderBlockOutline(final CallbackInfoReturnable<Boolean> cir) {
+-        if (Krypton.INSTANCE.getModuleManager().getModuleByClass(Freecam.class).isEnabled()) {
+-            cir.setReturnValue(false);
+-        }
+-    }
+-}
+\ No newline at end of file
+diff -ruN a/src/main/java/skid/krypton/mixin/InGameHudMixin.java b/src/main/java/skid/krypton/mixin/InGameHudMixin.java
+--- a/src/main/java/skid/krypton/mixin/InGameHudMixin.java	2026-11-21 16:08:01.783415062 +0000
++++ b/src/main/java/skid/krypton/mixin/InGameHudMixin.java	2026-11-21 16:08:01.786676157 +0000
+@@ -14,6 +14,7 @@
+ public class InGameHudMixin {
+     @Inject(method = {"render"}, at = {@At("HEAD")})
+     private void onRenderHud(final DrawContext ctx, final RenderTickCounter rtc, final CallbackInfo ci) {
+-        EventManager.b(new Render2DEvent(ctx, rtc.getTickDelta(true)));
++        skid.krypton.utils.RenderUtils.currentContext = ctx;
++        EventManager.b(new Render2DEvent(ctx, rtc.getTickProgress(true)));
+     }
+ }
+\ No newline at end of file
+diff -ruN a/src/main/java/skid/krypton/mixin/KeyBindingMixin.java b/src/main/java/skid/krypton/mixin/KeyBindingMixin.java
+--- a/src/main/java/skid/krypton/mixin/KeyBindingMixin.java	2026-11-21 16:08:01.783434564 +0000
++++ b/src/main/java/skid/krypton/mixin/KeyBindingMixin.java	2026-11-21 16:08:01.786695989 +0000
+@@ -16,7 +16,7 @@
+ 
+     @Override
+     public boolean krypton$isActuallyPressed() {
+-        return InputUtil.isKeyPressed(Krypton.mc.getWindow().getHandle(), this.boundKey.getCode());
++        return InputUtil.isKeyPressed(Krypton.mc.getWindow(), this.boundKey.getCode());
+     }
+ 
+     @Override
+diff -ruN a/src/main/java/skid/krypton/mixin/WorldChunkMixin.java b/src/main/java/skid/krypton/mixin/WorldChunkMixin.java
+--- a/src/main/java/skid/krypton/mixin/WorldChunkMixin.java	2026-11-21 16:08:01.783528682 +0000
++++ b/src/main/java/skid/krypton/mixin/WorldChunkMixin.java	2026-11-21 16:08:01.786789239 +0000
+@@ -21,7 +21,7 @@
+ 
+     @Inject(method = {"setBlockState"}, at = {@At("TAIL")})
+     private void onSetBlockState(final BlockPos pos, final BlockState state, final boolean moved, final CallbackInfoReturnable<BlockState> cir) {
+-        if (this.world.isClient) {
++        if (this.world.isClient()) {
+             EventManager.b(new SetBlockStateEvent(pos, cir.getReturnValue(), state));
+         }
+     }
+diff -ruN a/src/main/java/skid/krypton/module/modules/combat/AnchorMacro.java b/src/main/java/skid/krypton/module/modules/combat/AnchorMacro.java
+--- a/src/main/java/skid/krypton/module/modules/combat/AnchorMacro.java	2026-11-21 16:08:01.783651502 +0000
++++ b/src/main/java/skid/krypton/module/modules/combat/AnchorMacro.java	2026-11-21 16:08:01.786915746 +0000
+@@ -100,15 +100,15 @@
+ 
+     private void explodeAnchor(final BlockHitResult blockHitResult) {
+         final int selectedSlot = this.totemSlot.getIntValue() - 1;
+-        if (this.mc.player.getInventory().selectedSlot != selectedSlot) {
++        if (this.mc.player.getInventory().getSelectedSlot() != selectedSlot) {
+             if (this.keybind < this.switchDelay.getIntValue()) {
+                 ++this.keybind;
+                 return;
+             }
+             this.keybind = 0;
+-            this.mc.player.getInventory().selectedSlot = selectedSlot;
++            this.mc.player.getInventory().setSelectedSlot(selectedSlot);
+         }
+-        if (this.mc.player.getInventory().selectedSlot == selectedSlot) {
++        if (this.mc.player.getInventory().getSelectedSlot() == selectedSlot) {
+             if (this.explodeDelayCounter < this.explodeDelay.getIntValue()) {
+                 ++this.explodeDelayCounter;
+                 return;
+diff -ruN a/src/main/java/skid/krypton/module/modules/combat/AutoInventoryTotem.java b/src/main/java/skid/krypton/module/modules/combat/AutoInventoryTotem.java
+--- a/src/main/java/skid/krypton/module/modules/combat/AutoInventoryTotem.java	2026-11-21 16:08:01.783677662 +0000
++++ b/src/main/java/skid/krypton/module/modules/combat/AutoInventoryTotem.java	2026-11-21 16:08:01.786967099 +0000
+@@ -66,10 +66,10 @@
+         }
+         final PlayerInventory getInventory = this.mc.player.getInventory();
+         if (this.autoSwitch.getValue()) {
+-            getInventory.selectedSlot = this.totemSlot.getIntValue() - 1;
++            getInventory.setSelectedSlot(this.totemSlot.getIntValue() - 1);
+         }
+         if (this.delayCounter <= 0) {
+-            if (getInventory.offHand.get(0).getItem() != Items.TOTEM_OF_UNDYING) {
++            if (getInventory.getStack(40).getItem() != Items.TOTEM_OF_UNDYING) {
+                 final int l = this.findTotemSlot();
+                 if (l != -1) {
+                     this.mc.interactionManager.clickSlot(((InventoryScreen) this.mc.currentScreen).getScreenHandler().syncId, l, 40, SlotActionType.SWAP, this.mc.player);
+@@ -81,7 +81,7 @@
+                 if (getAbilities.isEmpty() || (this.forceTotem.getValue() && getAbilities.getItem() != Items.TOTEM_OF_UNDYING)) {
+                     final int i = this.findTotemSlot();
+                     if (i != -1) {
+-                        this.mc.interactionManager.clickSlot(((InventoryScreen) this.mc.currentScreen).getScreenHandler().syncId, i, getInventory.selectedSlot, SlotActionType.SWAP, this.mc.player);
++                        this.mc.interactionManager.clickSlot(((InventoryScreen) this.mc.currentScreen).getScreenHandler().syncId, i, getInventory.getSelectedSlot(), SlotActionType.SWAP, this.mc.player);
+                         return;
+                     }
+                 }
+@@ -113,8 +113,8 @@
+ 
+     private int findTotemSlot() {
+         final PlayerInventory inventory = this.mc.player.getInventory();
+-        for (int i = 0; i < inventory.main.size(); i++) {
+-            if (inventory.main.get(i).getItem() == Items.TOTEM_OF_UNDYING) {
++        for (int i = 0; i < inventory.getMainStacks().size(); i++) {
++            if (inventory.getMainStacks().get(i).getItem() == Items.TOTEM_OF_UNDYING) {
+                 return i;
+             }
+         }
+@@ -124,8 +124,8 @@
+     private int countTotems(final Predicate<Item> predicate) {
+         int count = 0;
+         final PlayerInventory inventory = this.mc.player.getInventory();
+-        for (int i = 0; i < inventory.main.size(); i++) {
+-            final ItemStack stack = inventory.main.get(i);
++        for (int i = 0; i < inventory.getMainStacks().size(); i++) {
++            final ItemStack stack = inventory.getMainStacks().get(i);
+             if (predicate.test(stack.getItem())) {
+                 count += stack.getCount();
+             }
+diff -ruN a/src/main/java/skid/krypton/module/modules/combat/ElytraSwap.java b/src/main/java/skid/krypton/module/modules/combat/ElytraSwap.java
+--- a/src/main/java/skid/krypton/module/modules/combat/ElytraSwap.java	2026-11-21 16:08:01.783709244 +0000
++++ b/src/main/java/skid/krypton/module/modules/combat/ElytraSwap.java	2026-11-21 16:08:01.787011061 +0000
+@@ -1,7 +1,6 @@
+ package skid.krypton.module.modules.combat;
+ 
+ import net.minecraft.entity.EquipmentSlot;
+-import net.minecraft.item.ArmorItem;
+ import net.minecraft.item.Item;
+ import net.minecraft.item.Items;
+ import net.minecraft.screen.slot.SlotActionType;
+@@ -66,7 +65,7 @@
+         }
+         if (this.isSwapping) {
+             if (this.originalSlot == -1) {
+-                this.originalSlot = this.mc.player.getInventory().selectedSlot;
++                this.originalSlot = this.mc.player.getInventory().getSelectedSlot();
+             }
+             if (this.swapCounter < this.swapDelay.getIntValue()) {
+                 ++this.swapCounter;
+@@ -74,8 +73,8 @@
+             }
+             Predicate<Item> predicate;
+ 
+-            if (this.mc.player.getInventory().getArmorStack(EquipmentSlot.CHEST.getEntitySlotId()).isOf(Items.ELYTRA)) {
+-                predicate = (item -> item instanceof ArmorItem && ((ArmorItem) item).getSlotType() == EquipmentSlot.CHEST);
++            if (this.mc.player.getEquippedStack(net.minecraft.entity.EquipmentSlot.CHEST).isOf(Items.ELYTRA)) {
++                predicate = (item -> item.getDefaultStack().isIn(net.minecraft.registry.tag.ItemTags.CHEST_ARMOR));
+             } else {
+                 predicate = (item2 -> item2.equals(Items.ELYTRA));
+             }
+diff -ruN a/src/main/java/skid/krypton/module/modules/combat/HoverTotem.java b/src/main/java/skid/krypton/module/modules/combat/HoverTotem.java
+--- a/src/main/java/skid/krypton/module/modules/combat/HoverTotem.java	2026-11-21 16:08:01.783730112 +0000
++++ b/src/main/java/skid/krypton/module/modules/combat/HoverTotem.java	2026-11-21 16:08:01.787034614 +0000
+@@ -47,7 +47,7 @@
+             return;
+         }
+         if (this.autoSwitchToTotem.getValue()) {
+-            this.mc.player.getInventory().selectedSlot = this.hotbarSlot.getIntValue() - 1;
++            this.mc.player.getInventory().setSelectedSlot(this.hotbarSlot.getIntValue() - 1);
+         }
+         if (focusedSlot.getStack().getItem() != Items.TOTEM_OF_UNDYING) {
+             return;
+diff -ruN a/src/main/java/skid/krypton/module/modules/combat/MaceSwap.java b/src/main/java/skid/krypton/module/modules/combat/MaceSwap.java
+--- a/src/main/java/skid/krypton/module/modules/combat/MaceSwap.java	2026-11-21 16:08:01.783739417 +0000
++++ b/src/main/java/skid/krypton/module/modules/combat/MaceSwap.java	2026-11-21 16:08:01.787044138 +0000
+@@ -4,7 +4,6 @@
+ import net.minecraft.item.AxeItem;
+ import net.minecraft.item.Item;
+ import net.minecraft.item.Items;
+-import net.minecraft.item.SwordItem;
+ import skid.krypton.event.EventListener;
+ import skid.krypton.event.events.AttackEvent;
+ import skid.krypton.event.events.TickEvent;
+@@ -69,7 +68,7 @@
+             return;
+         }
+         if (this.previousSlot == -1) {
+-            this.previousSlot = this.mc.player.getInventory().selectedSlot;
++            this.previousSlot = this.mc.player.getInventory().getSelectedSlot();
+         }
+         if ((this.enableWindBurst.getValue() && this.enableBreach.getValue()) || (!this.enableWindBurst.getValue() && !this.enableBreach.getValue())) {
+             InventoryUtil.swap(Items.MACE);
+@@ -87,9 +86,9 @@
+     private boolean isValidWeapon() {
+         final Item item = this.mc.player.getMainHandStack().getItem();
+         if (this.onlySword.getValue() && this.onlyAxe.getValue()) {
+-            return item instanceof SwordItem || item instanceof AxeItem;
++            return item.getDefaultStack().isIn(net.minecraft.registry.tag.ItemTags.SWORDS) || item instanceof AxeItem;
+         }
+-        return (!this.onlySword.getValue() || item instanceof SwordItem) && (!this.onlyAxe.getValue() || item instanceof AxeItem);
++        return (!this.onlySword.getValue() || item.getDefaultStack().isIn(net.minecraft.registry.tag.ItemTags.SWORDS)) && (!this.onlyAxe.getValue() || item instanceof AxeItem);
+     }
+ 
+     private void performSwitchBack() {
+diff -ruN a/src/main/java/skid/krypton/module/modules/donut/NetheriteFinder.java b/src/main/java/skid/krypton/module/modules/donut/NetheriteFinder.java
+--- a/src/main/java/skid/krypton/module/modules/donut/NetheriteFinder.java	2026-11-21 16:08:01.783846826 +0000
++++ b/src/main/java/skid/krypton/module/modules/donut/NetheriteFinder.java	2026-11-21 16:08:01.787214783 +0000
+@@ -63,7 +63,7 @@
+             if (var3 != null) {
+                 MatrixStack var4 = var1.matrixStack;
+                 var1.matrixStack.push();
+-                Vec3d var5 = var3.getPos();
++                Vec3d var5 = var3.getCameraPos();
+                 RotationAxis var2 = RotationAxis.POSITIVE_X;
+                 var4.multiply(var2.rotationDegrees(var3.getPitch()));
+                 RotationAxis var8 = RotationAxis.POSITIVE_Y;
+diff -ruN a/src/main/java/skid/krypton/module/modules/donut/RtpBaseFinder.java b/src/main/java/skid/krypton/module/modules/donut/RtpBaseFinder.java
+--- a/src/main/java/skid/krypton/module/modules/donut/RtpBaseFinder.java	2026-11-21 16:08:01.783861449 +0000
++++ b/src/main/java/skid/krypton/module/modules/donut/RtpBaseFinder.java	2026-11-21 16:08:01.787168578 +0000
+@@ -106,7 +106,7 @@
+                 }
+                 this.totemBuyCounter = 0;
+                 this.isBuyingTotem = true;
+-                if (this.mc.player.getInventory().selectedSlot != n) {
++                if (this.mc.player.getInventory().getSelectedSlot() != n) {
+                     InventoryUtil.swap(n);
+                 }
+                 final ScreenHandler currentScreenHandler = this.mc.player.currentScreenHandler;
+@@ -146,7 +146,7 @@
+         if (this.isRepairing) {
+             final int n2 = this.xpBottleSlot.getIntValue() - 1;
+             final ItemStack getStack = this.mc.player.getInventory().getStack(n2);
+-            if (this.mc.player.getInventory().selectedSlot != n2) {
++            if (this.mc.player.getInventory().getSelectedSlot() != n2) {
+                 InventoryUtil.swap(n2);
+             }
+             if (!getStack.isOf(Items.EXPERIENCE_BOTTLE)) {
+@@ -192,7 +192,7 @@
+                 }
+                 if (this.mc.player.getOffHandStack().getDamage() > 0) {
+                     final ActionResult interactItem = this.mc.interactionManager.interactItem(this.mc.player, Hand.MAIN_HAND);
+-                    if (interactItem.isAccepted() && interactItem.shouldSwingHand()) {
++                    if (interactItem.isAccepted() && skid.krypton.utils.CompatUtil.shouldSwing(interactItem)) {
+                         this.mc.player.swingHand(Hand.MAIN_HAND);
+                     }
+                     this.actionDelay = 1;
+@@ -223,7 +223,7 @@
+             if (this.rtpCooldown > 0) {
+                 --this.rtpCooldown;
+                 if (this.rtpCooldown < 1) {
+-                    if (this.previousPosition != null && this.previousPosition.distanceTo(this.mc.player.getPos()) < 100.0) {
++                    if (this.previousPosition != null && this.previousPosition.distanceTo(this.mc.player.getEntityPos()) < 100.0) {
+                         this.sendRtpCommand();
+                         return;
+                     }
+@@ -232,17 +232,17 @@
+                         final ItemStack size = this.mc.player.getMainHandStack();
+                         if (EnchantmentUtil.hasEnchantment(size, Enchantments.MENDING) && size.getMaxDamage() - size.getDamage() < 100) {
+                             this.isRepairing = true;
+-                            this.selectedSlot = this.mc.player.getInventory().selectedSlot;
++                            this.selectedSlot = this.mc.player.getInventory().getSelectedSlot();
+                         }
+                     }
+                     this.shouldDig = true;
+                 }
+                 return;
+             }
+-            if (this.currentPosition != null && this.currentPosition.distanceTo(this.mc.player.getPos()) < 2.0) {
++            if (this.currentPosition != null && this.currentPosition.distanceTo(this.mc.player.getEntityPos()) < 2.0) {
+                 ++this.idleTime;
+             } else {
+-                this.currentPosition = this.mc.player.getPos();
++                this.currentPosition = this.mc.player.getEntityPos();
+                 this.idleTime = 0.0;
+             }
+             if (this.idleTime > 20.0 && this.isDigging) {
+@@ -274,7 +274,7 @@
+         networkHandler.sendChatCommand("rtp " + this.getModeName(l));
+         this.rtpCooldown = 150;
+         this.idleTime = 0.0;
+-        this.previousPosition = new Vec3d(this.mc.player.getPos().toVector3f());
++        this.previousPosition = new Vec3d(this.mc.player.getEntityPos().toVector3f());
+     }
+ 
+     private void disconnectWithMessage(final Text text) {
+@@ -338,7 +338,7 @@
+                 if (!this.mc.world.getBlockState(blockPos).isAir()) {
+                     final Direction side = blockHitResult.getSide();
+                     if (this.mc.interactionManager.updateBlockBreakingProgress(blockPos, side)) {
+-                        this.mc.particleManager.addBlockBreakingParticles(blockPos, side);
++                        /* hiệu ứng hạt khi đào đã bị bỏ ở 1.21.11 */
+                         this.mc.player.swingHand(Hand.MAIN_HAND);
+                     }
+                 }
+@@ -357,7 +357,7 @@
+             for (final Object next : ((WorldChunk) iterator.next()).getBlockEntityPositions()) {
+                 final BlockEntity getBlockEntity = this.mc.world.getBlockEntity((BlockPos) next);
+                 if (this.spawn.getValue() && getBlockEntity instanceof MobSpawnerBlockEntity) {
+-                    final String string = ((MobSpawnerLogicAccessor) ((MobSpawnerBlockEntity) getBlockEntity).getLogic()).getSpawnEntry().getNbt().getString("id");
++                    final String string = ((MobSpawnerLogicAccessor) ((MobSpawnerBlockEntity) getBlockEntity).getLogic()).getSpawnEntry().getNbt().getString("id").orElse("");
+                     if (string != "minecraft:cave_spider" && string != "minecraft:spider") {
+                         ++n2;
+                         blockPos = (BlockPos) next;
+@@ -378,7 +378,7 @@
+             this.spawnerCounter = 0;
+         }
+         if (n > this.minStorage.getIntValue()) {
+-            this.notifyBaseOrSpawner("YOU FOUND BASE", (int) this.mc.player.getPos().x, (int) this.mc.player.getPos().y, (int) this.mc.player.getPos().z, true);
++            this.notifyBaseOrSpawner("YOU FOUND BASE", (int) this.mc.player.getEntityPos().x, (int) this.mc.player.getEntityPos().y, (int) this.mc.player.getEntityPos().z, true);
+         }
+     }
+ 
+diff -ruN a/src/main/java/skid/krypton/module/modules/donut/TunnelBaseFinder.java b/src/main/java/skid/krypton/module/modules/donut/TunnelBaseFinder.java
+--- a/src/main/java/skid/krypton/module/modules/donut/TunnelBaseFinder.java	2026-11-21 16:08:01.783894411 +0000
++++ b/src/main/java/skid/krypton/module/modules/donut/TunnelBaseFinder.java	2026-11-21 16:08:01.787193646 +0000
+@@ -120,7 +120,7 @@
+                 }
+                 this.totemBuyCounter = 0;
+                 this.shouldDig = true;
+-                if (this.mc.player.getInventory().selectedSlot != n2) {
++                if (this.mc.player.getInventory().getSelectedSlot() != n2) {
+                     InventoryUtil.swap(n2);
+                 }
+                 final ScreenHandler currentScreenHandler = this.mc.player.currentScreenHandler;
+@@ -160,7 +160,7 @@
+         if (this.isDigging) {
+             final int n3 = this.xpBottleSlot.getIntValue() - 1;
+             final ItemStack getStack = this.mc.player.getInventory().getStack(n3);
+-            if (this.mc.player.getInventory().selectedSlot != n3) {
++            if (this.mc.player.getInventory().getSelectedSlot() != n3) {
+                 InventoryUtil.swap(n3);
+             }
+             if (!getStack.isOf(Items.EXPERIENCE_BOTTLE)) {
+@@ -206,7 +206,7 @@
+                 }
+                 if (this.mc.player.getOffHandStack().getDamage() > 0) {
+                     final ActionResult interactItem = this.mc.interactionManager.interactItem(this.mc.player, Hand.MAIN_HAND);
+-                    if (interactItem.isAccepted() && interactItem.shouldSwingHand()) {
++                    if (interactItem.isAccepted() && skid.krypton.utils.CompatUtil.shouldSwing(interactItem)) {
+                         this.mc.player.swingHand(Hand.MAIN_HAND);
+                     }
+                     this.blocksMined = 1;
+@@ -220,7 +220,7 @@
+                 final ItemStack size = this.mc.player.getMainHandStack();
+                 if (EnchantmentUtil.hasEnchantment(size, Enchantments.MENDING) && size.getMaxDamage() - size.getDamage() < 100) {
+                     this.isDigging = true;
+-                    this.totemCheckCounter = this.mc.player.getInventory().selectedSlot;
++                    this.totemCheckCounter = this.mc.player.getInventory().getSelectedSlot();
+                 }
+             }
+             if (this.totemCheck.getValue()) {
+@@ -257,13 +257,13 @@
+             }
+             if (!a && (!b || !a2)) {
+                 ++this.idleTicks;
+-                this.lastPosition = this.mc.player.getPos();
++                this.lastPosition = this.mc.player.getEntityPos();
+                 this.blocksMined = 5;
+                 return;
+             }
+             this.mc.options.forwardKey.setPressed(a2 && b);
+-            if (this.idleTicks > 0 && this.lastPosition != null && this.mc.player.getPos().distanceTo(this.lastPosition) > 1.0) {
+-                this.lastPosition = this.mc.player.getPos();
++            if (this.idleTicks > 0 && this.lastPosition != null && this.mc.player.getEntityPos().distanceTo(this.lastPosition) > 1.0) {
++                this.lastPosition = this.mc.player.getEntityPos();
+                 final net.minecraft.util.math.Direction rotateYCounterclockwise = this.mc.player.getHorizontalFacing().rotateYCounterclockwise();
+                 BlockPos blockPos2 = this.mc.player.getBlockPos().up().offset(rotateYCounterclockwise);
+                 for (int i = 0; i < 5; ++i) {
+@@ -400,7 +400,7 @@
+                 if (!this.mc.world.getBlockState(blockPos).isAir()) {
+                     final net.minecraft.util.math.Direction side = blockHitResult.getSide();
+                     if (this.mc.interactionManager.updateBlockBreakingProgress(blockPos, side)) {
+-                        this.mc.particleManager.addBlockBreakingParticles(blockPos, side);
++                        /* hiệu ứng hạt khi đào đã bị bỏ ở 1.21.11 */
+                         this.mc.player.swingHand(Hand.MAIN_HAND);
+                     }
+                 }
+@@ -436,7 +436,7 @@
+             for (final Object next : ((WorldChunk) iterator.next()).getBlockEntityPositions()) {
+                 final BlockEntity getBlockEntity = this.mc.world.getBlockEntity((BlockPos) next);
+                 if (this.spawners.getValue() && getBlockEntity instanceof MobSpawnerBlockEntity) {
+-                    final String string = ((MobSpawnerLogicAccessor) ((MobSpawnerBlockEntity) getBlockEntity).getLogic()).getSpawnEntry().getNbt().getString("id");
++                    final String string = ((MobSpawnerLogicAccessor) ((MobSpawnerBlockEntity) getBlockEntity).getLogic()).getSpawnEntry().getNbt().getString("id").orElse("");
+                     if (string != "minecraft:cave_spider" && string != "minecraft:spider") {
+                         ++n2;
+                         blockPos = (BlockPos) next;
+@@ -463,7 +463,7 @@
+             this.spawnerCount = 0;
+         }
+         if (n > this.minimumStorage.getIntValue()) {
+-            this.notifyFound("YOU FOUND BASE", (int) this.mc.player.getPos().x, (int) this.mc.player.getPos().y, (int) this.mc.player.getPos().z, true);
++            this.notifyFound("YOU FOUND BASE", (int) this.mc.player.getEntityPos().x, (int) this.mc.player.getEntityPos().y, (int) this.mc.player.getEntityPos().z, true);
+         }
+     }
+ 
+diff -ruN a/src/main/java/skid/krypton/module/modules/misc/AutoEat.java b/src/main/java/skid/krypton/module/modules/misc/AutoEat.java
+--- a/src/main/java/skid/krypton/module/modules/misc/AutoEat.java	2026-11-21 16:08:01.783930173 +0000
++++ b/src/main/java/skid/krypton/module/modules/misc/AutoEat.java	2026-11-21 16:08:01.787244722 +0000
+@@ -80,7 +80,7 @@
+     }
+ 
+     private void saveCurrentSlot() {
+-        this.previousSelectedSlot = this.mc.player.getInventory().selectedSlot;
++        this.previousSelectedSlot = this.mc.player.getInventory().getSelectedSlot();
+         this.startEating();
+     }
+ 
+diff -ruN a/src/main/java/skid/krypton/module/modules/misc/AutoFirework.java b/src/main/java/skid/krypton/module/modules/misc/AutoFirework.java
+--- a/src/main/java/skid/krypton/module/modules/misc/AutoFirework.java	2026-11-21 16:08:01.783965624 +0000
++++ b/src/main/java/skid/krypton/module/modules/misc/AutoFirework.java	2026-11-21 16:08:01.787255546 +0000
+@@ -1,7 +1,6 @@
+ package skid.krypton.module.modules.misc;
+ 
+ import net.minecraft.component.DataComponentTypes;
+-import net.minecraft.item.ArmorItem;
+ import net.minecraft.item.Items;
+ import net.minecraft.util.Hand;
+ import skid.krypton.Krypton;
+@@ -54,12 +53,12 @@
+             --this.cooldownCounter;
+             return;
+         }
+-        if (this.mc.player != null && KeyUtils.isKeyPressed(this.activateKey.getValue()) && (Krypton.INSTANCE.MODULE_MANAGER.getModuleByClass(ElytraGlide.class).isEnabled() || this.mc.player.isFallFlying()) && this.mc.player.getInventory().getArmorStack(2).isOf(Items.ELYTRA) && !this.mc.player.getInventory().getMainHandStack().isOf(Items.FIREWORK_ROCKET) && !this.mc.player.getMainHandStack().getItem().getComponents().contains(DataComponentTypes.FOOD) && !(this.mc.player.getMainHandStack().getItem() instanceof ArmorItem)) {
++        if (this.mc.player != null && KeyUtils.isKeyPressed(this.activateKey.getValue()) && (Krypton.INSTANCE.MODULE_MANAGER.getModuleByClass(ElytraGlide.class).isEnabled() || this.mc.player.isGliding()) && this.mc.player.getEquippedStack(net.minecraft.entity.EquipmentSlot.CHEST).isOf(Items.ELYTRA) && !this.mc.player.getMainHandStack().isOf(Items.FIREWORK_ROCKET) && !this.mc.player.getMainHandStack().getItem().getComponents().contains(DataComponentTypes.FOOD) && !this.mc.player.getMainHandStack().contains(net.minecraft.component.DataComponentTypes.EQUIPPABLE)) {
+             this.isFireworkActive = true;
+         }
+         if (this.isFireworkActive) {
+             if (this.previousSelectedSlot == -1) {
+-                this.previousSelectedSlot = this.mc.player.getInventory().selectedSlot;
++                this.previousSelectedSlot = this.mc.player.getInventory().getSelectedSlot();
+             }
+             if (!InventoryUtil.swap(Items.FIREWORK_ROCKET)) {
+                 this.resetState();
+diff -ruN a/src/main/java/skid/krypton/module/modules/misc/AutoMine.java b/src/main/java/skid/krypton/module/modules/misc/AutoMine.java
+--- a/src/main/java/skid/krypton/module/modules/misc/AutoMine.java	2026-11-21 16:08:01.783980220 +0000
++++ b/src/main/java/skid/krypton/module/modules/misc/AutoMine.java	2026-11-21 16:08:01.787268129 +0000
+@@ -65,7 +65,7 @@
+                 if (!this.mc.world.getBlockState(blockPos).isAir()) {
+                     final Direction side = blockHitResult.getSide();
+                     if (this.mc.interactionManager.updateBlockBreakingProgress(blockPos, side)) {
+-                        this.mc.particleManager.addBlockBreakingParticles(blockPos, side);
++                        /* hiệu ứng hạt khi đào đã bị bỏ ở 1.21.11 */
+                         this.mc.player.swingHand(Hand.MAIN_HAND);
+                     }
+                 }
+diff -ruN a/src/main/java/skid/krypton/module/modules/misc/AutoTPA.java b/src/main/java/skid/krypton/module/modules/misc/AutoTPA.java
+--- a/src/main/java/skid/krypton/module/modules/misc/AutoTPA.java	2026-11-21 16:08:01.783990669 +0000
++++ b/src/main/java/skid/krypton/module/modules/misc/AutoTPA.java	2026-11-21 16:08:01.787277389 +0000
+@@ -44,7 +44,7 @@
+         } else {
+             commandPrefix = "tpahere ";
+         }
+-        networkHandler.sendCommand(commandPrefix + this.playerName.getValue());
++        networkHandler.sendChatCommand(commandPrefix + this.playerName.getValue());
+         this.delayCounter = this.delayRange.getRandomIntInRange();
+     }
+ 
+diff -ruN a/src/main/java/skid/krypton/module/modules/misc/AutoTool.java b/src/main/java/skid/krypton/module/modules/misc/AutoTool.java
+--- a/src/main/java/skid/krypton/module/modules/misc/AutoTool.java	2026-11-21 16:08:01.784004385 +0000
++++ b/src/main/java/skid/krypton/module/modules/misc/AutoTool.java	2026-11-21 16:08:01.787286509 +0000
+@@ -79,7 +79,7 @@
+         if (!predicate.test(itemStack) || !isToolItemStack(itemStack)) {
+             return -1.0;
+         }
+-        if (!itemStack.isSuitableFor(blockState) && (!(itemStack.getItem() instanceof SwordItem) || (!(blockState.getBlock() instanceof BambooBlock) && !(blockState.getBlock() instanceof BambooShootBlock))) && (!(itemStack.getItem() instanceof ShearsItem) || !(blockState.getBlock() instanceof LeavesBlock)) && !blockState.isIn(BlockTags.WOOL)) {
++        if (!itemStack.isSuitableFor(blockState) && (!(itemStack.isIn(net.minecraft.registry.tag.ItemTags.SWORDS)) || (!(blockState.getBlock() instanceof BambooBlock) && !(blockState.getBlock() instanceof BambooShootBlock))) && (!(itemStack.getItem() instanceof ShearsItem) || !(blockState.getBlock() instanceof LeavesBlock)) && !blockState.isIn(BlockTags.WOOL)) {
+             return -1.0;
+         }
+         return 0.0 + itemStack.getMiningSpeedMultiplier(blockState) * 1000.0f;
+@@ -90,7 +90,7 @@
+     }
+ 
+     public static boolean isToolItem(final Item item) {
+-        return item instanceof ToolItem || item instanceof ShearsItem;
++        return item.getDefaultStack().contains(net.minecraft.component.DataComponentTypes.TOOL) || item instanceof ShearsItem;
+     }
+ 
+     private boolean isToolBreakingSoon(final ItemStack itemStack) {
+diff -ruN a/src/main/java/skid/krypton/module/modules/misc/ElytraGlide.java b/src/main/java/skid/krypton/module/modules/misc/ElytraGlide.java
+--- a/src/main/java/skid/krypton/module/modules/misc/ElytraGlide.java	2026-11-21 16:08:01.784027222 +0000
++++ b/src/main/java/skid/krypton/module/modules/misc/ElytraGlide.java	2026-11-21 16:08:01.787307349 +0000
+@@ -42,12 +42,12 @@
+         }
+         if (this.isFlyingTriggered) {
+             if (this.isFireworkUsed) {
+-                final int selectedSlot = this.mc.player.getInventory().selectedSlot;
++                final int selectedSlot = this.mc.player.getInventory().getSelectedSlot();
+                 if (!this.mc.player.getMainHandStack().isOf(Items.FIREWORK_ROCKET) && !InventoryUtil.swap(Items.FIREWORK_ROCKET)) {
+                     return;
+                 }
+                 this.mc.interactionManager.interactItem(this.mc.player, this.mc.player.getActiveHand());
+-                this.mc.player.getInventory().selectedSlot = selectedSlot;
++                this.mc.player.getInventory().setSelectedSlot(selectedSlot);
+                 this.isFireworkUsed = false;
+                 this.isFlyingTriggered = false;
+             } else if (this.mc.player.isOnGround()) {
+@@ -63,7 +63,7 @@
+ 
+     @EventListener
+     public void onPreItemUse(final PreItemUseEvent event) {
+-        if (!mc.player.getMainHandStack().isOf(Items.FIREWORK_ROCKET) || !mc.player.getInventory().getArmorStack(EquipmentSlot.CHEST.getEntitySlotId()).isOf(Items.ELYTRA) || !mc.player.isFallFlying()) return;
++        if (!mc.player.getMainHandStack().isOf(Items.FIREWORK_ROCKET) || !mc.player.getEquippedStack(net.minecraft.entity.EquipmentSlot.CHEST).isOf(Items.ELYTRA) || !mc.player.isGliding()) return;
+         this.isFlyingTriggered = true;
+     }
+ }
+\ No newline at end of file
+diff -ruN a/src/main/java/skid/krypton/module/modules/misc/Freecam.java b/src/main/java/skid/krypton/module/modules/misc/Freecam.java
+--- a/src/main/java/skid/krypton/module/modules/misc/Freecam.java	2026-11-21 16:08:01.784048724 +0000
++++ b/src/main/java/skid/krypton/module/modules/misc/Freecam.java	2026-11-21 16:08:01.787327489 +0000
+@@ -47,8 +47,8 @@
+         this.pitch = this.mc.player.getPitch();
+         this.currentPerspective = this.mc.options.getPerspective();
+         this.movementSpeed = this.speed.getValue();
+-        Utils.copyVector(this.currentPosition, this.mc.gameRenderer.getCamera().getPos());
+-        Utils.copyVector(this.previousPosition, this.mc.gameRenderer.getCamera().getPos());
++        Utils.copyVector(this.currentPosition, this.mc.gameRenderer.getCamera().getCameraPos());
++        Utils.copyVector(this.previousPosition, this.mc.gameRenderer.getCamera().getCameraPos());
+         if (this.mc.options.getPerspective() == Perspective.THIRD_PERSON_FRONT) {
+             this.yaw += 180.0f;
+             this.pitch *= -1.0f;
+@@ -93,7 +93,7 @@
+ 
+     @EventListener
+     private void handleTickEvent(final TickEvent tickEvent) {
+-        if (this.mc.cameraEntity.isInsideWall()) {
++        if (this.mc.getCameraEntity().isInsideWall()) {
+             this.mc.getCameraEntity().noClip = true;
+         }
+         if (!this.currentPerspective.isFirstPerson()) {
+@@ -151,22 +151,22 @@
+             return;
+         }
+         boolean keyHandled = true;
+-        if (this.mc.options.forwardKey.matchesKey(keyEvent.key, 0)) {
++        if (this.mc.options.forwardKey.matchesKey(new net.minecraft.client.input.KeyInput(keyEvent.key, 0, 0))) {
+             this.isMovingForward = (keyEvent.mode != 0);
+             this.mc.options.forwardKey.setPressed(false);
+-        } else if (this.mc.options.backKey.matchesKey(keyEvent.key, 0)) {
++        } else if (this.mc.options.backKey.matchesKey(new net.minecraft.client.input.KeyInput(keyEvent.key, 0, 0))) {
+             this.isMovingBackward = (keyEvent.mode != 0);
+             this.mc.options.backKey.setPressed(false);
+-        } else if (this.mc.options.rightKey.matchesKey(keyEvent.key, 0)) {
++        } else if (this.mc.options.rightKey.matchesKey(new net.minecraft.client.input.KeyInput(keyEvent.key, 0, 0))) {
+             this.isMovingRight = (keyEvent.mode != 0);
+             this.mc.options.rightKey.setPressed(false);
+-        } else if (this.mc.options.leftKey.matchesKey(keyEvent.key, 0)) {
++        } else if (this.mc.options.leftKey.matchesKey(new net.minecraft.client.input.KeyInput(keyEvent.key, 0, 0))) {
+             this.isMovingLeft = (keyEvent.mode != 0);
+             this.mc.options.leftKey.setPressed(false);
+-        } else if (this.mc.options.jumpKey.matchesKey(keyEvent.key, 0)) {
++        } else if (this.mc.options.jumpKey.matchesKey(new net.minecraft.client.input.KeyInput(keyEvent.key, 0, 0))) {
+             this.isMovingUp = (keyEvent.mode != 0);
+             this.mc.options.jumpKey.setPressed(false);
+-        } else if (this.mc.options.sneakKey.matchesKey(keyEvent.key, 0)) {
++        } else if (this.mc.options.sneakKey.matchesKey(new net.minecraft.client.input.KeyInput(keyEvent.key, 0, 0))) {
+             this.isMovingDown = (keyEvent.mode != 0);
+             this.mc.options.sneakKey.setPressed(false);
+         } else {
+@@ -180,22 +180,22 @@
+     @EventListener
+     private void handleMouseButtonEvent(final MouseButtonEvent event) {
+         boolean buttonHandled = true;
+-        if (this.mc.options.forwardKey.matchesMouse(event.button)) {
++        if (this.mc.options.forwardKey.matchesMouse(new net.minecraft.client.gui.Click(0.0, 0.0, new net.minecraft.client.input.MouseInput(event.button, 0)))) {
+             this.isMovingForward = (event.actions != 0);
+             this.mc.options.forwardKey.setPressed(false);
+-        } else if (this.mc.options.backKey.matchesMouse(event.button)) {
++        } else if (this.mc.options.backKey.matchesMouse(new net.minecraft.client.gui.Click(0.0, 0.0, new net.minecraft.client.input.MouseInput(event.button, 0)))) {
+             this.isMovingBackward = (event.actions != 0);
+             this.mc.options.backKey.setPressed(false);
+-        } else if (this.mc.options.rightKey.matchesMouse(event.button)) {
++        } else if (this.mc.options.rightKey.matchesMouse(new net.minecraft.client.gui.Click(0.0, 0.0, new net.minecraft.client.input.MouseInput(event.button, 0)))) {
+             this.isMovingRight = (event.actions != 0);
+             this.mc.options.rightKey.setPressed(false);
+-        } else if (this.mc.options.leftKey.matchesMouse(event.button)) {
++        } else if (this.mc.options.leftKey.matchesMouse(new net.minecraft.client.gui.Click(0.0, 0.0, new net.minecraft.client.input.MouseInput(event.button, 0)))) {
+             this.isMovingLeft = (event.actions != 0);
+             this.mc.options.leftKey.setPressed(false);
+-        } else if (this.mc.options.jumpKey.matchesMouse(event.button)) {
++        } else if (this.mc.options.jumpKey.matchesMouse(new net.minecraft.client.gui.Click(0.0, 0.0, new net.minecraft.client.input.MouseInput(event.button, 0)))) {
+             this.isMovingUp = (event.actions != 0);
+             this.mc.options.jumpKey.setPressed(false);
+-        } else if (this.mc.options.sneakKey.matchesMouse(event.button)) {
++        } else if (this.mc.options.sneakKey.matchesMouse(new net.minecraft.client.gui.Click(0.0, 0.0, new net.minecraft.client.input.MouseInput(event.button, 0)))) {
+             this.isMovingDown = (event.actions != 0);
+             this.mc.options.sneakKey.setPressed(false);
+         } else {
+diff -ruN a/src/main/java/skid/krypton/module/modules/misc/KeyPearl.java b/src/main/java/skid/krypton/module/modules/misc/KeyPearl.java
+--- a/src/main/java/skid/krypton/module/modules/misc/KeyPearl.java	2026-11-21 16:08:01.784061627 +0000
++++ b/src/main/java/skid/krypton/module/modules/misc/KeyPearl.java	2026-11-21 16:08:01.787342129 +0000
+@@ -51,7 +51,7 @@
+         }
+         if (this.isActivated) {
+             if (this.previousSlot == -1) {
+-                this.previousSlot = this.mc.player.getInventory().selectedSlot;
++                this.previousSlot = this.mc.player.getInventory().getSelectedSlot();
+             }
+             InventoryUtil.swap(Items.ENDER_PEARL);
+             if (this.currentThrowDelay < this.throwDelay.getIntValue()) {
+@@ -60,7 +60,7 @@
+             }
+             if (!this.hasThrown) {
+                 final ActionResult interactItem = this.mc.interactionManager.interactItem(this.mc.player, Hand.MAIN_HAND);
+-                if (interactItem.isAccepted() && interactItem.shouldSwingHand()) {
++                if (interactItem.isAccepted() && skid.krypton.utils.CompatUtil.shouldSwing(interactItem)) {
+                     this.mc.player.swingHand(Hand.MAIN_HAND);
+                 }
+                 this.hasThrown = true;
+diff -ruN a/src/main/java/skid/krypton/module/modules/render/HUD.java b/src/main/java/skid/krypton/module/modules/render/HUD.java
+--- a/src/main/java/skid/krypton/module/modules/render/HUD.java	2026-11-21 16:08:01.784095674 +0000
++++ b/src/main/java/skid/krypton/module/modules/render/HUD.java	2026-11-21 16:08:01.787372964 +0000
+@@ -62,6 +62,7 @@
+             DrawContext drawContext = render2DEvent.context;
+             int n = this.mc.getWindow().getWidth();
+             int n2 = this.mc.getWindow().getHeight();
++            RenderUtils.currentContext = drawContext;
+             RenderUtils.unscaledProjection();
+             if (this.showWatermark.getValue()) {
+                 this.renderWatermark(drawContext, n);
+diff -ruN a/src/main/java/skid/krypton/module/modules/render/PlayerESP.java b/src/main/java/skid/krypton/module/modules/render/PlayerESP.java
+--- a/src/main/java/skid/krypton/module/modules/render/PlayerESP.java	2026-11-21 16:08:01.784109981 +0000
++++ b/src/main/java/skid/krypton/module/modules/render/PlayerESP.java	2026-11-21 16:08:01.787388911 +0000
+@@ -57,64 +57,19 @@
+                     a.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(camera.getYaw() + 180.0f));
+                     a.translate(-pos.x, -pos.y, -pos.z);
+                 }
+-                final double lerp = MathHelper.lerp(RenderTickCounter.ONE.getTickDelta(true), ((PlayerEntity) next).prevX, ((PlayerEntity) next).getX());
+-                final double lerp2 = MathHelper.lerp(RenderTickCounter.ONE.getTickDelta(true), ((PlayerEntity) next).prevY, ((PlayerEntity) next).getY());
+-                final double lerp3 = MathHelper.lerp(RenderTickCounter.ONE.getTickDelta(true), ((PlayerEntity) next).prevZ, ((PlayerEntity) next).getZ());
++                final double lerp = MathHelper.lerp(RenderTickCounter.ONE.getTickProgress(true), ((PlayerEntity) next).lastX, ((PlayerEntity) next).getX());
++                final double lerp2 = MathHelper.lerp(RenderTickCounter.ONE.getTickProgress(true), ((PlayerEntity) next).lastY, ((PlayerEntity) next).getY());
++                final double lerp3 = MathHelper.lerp(RenderTickCounter.ONE.getTickProgress(true), ((PlayerEntity) next).lastZ, ((PlayerEntity) next).getZ());
+                 RenderUtils.renderFilledBox(render3DEvent.matrixStack, (float) lerp - ((PlayerEntity) next).getWidth() / 2.0f, (float) lerp2, (float) lerp3 - ((PlayerEntity) next).getWidth() / 2.0f, (float) lerp + ((PlayerEntity) next).getWidth() / 2.0f, (float) lerp2 + ((PlayerEntity) next).getHeight(), (float) lerp3 + ((PlayerEntity) next).getWidth() / 2.0f, Utils.getMainColor(this.alpha.getIntValue(), 1).brighter());
+                 if (this.tracers.getValue()) {
+-                    RenderUtils.renderLine(render3DEvent.matrixStack, Utils.getMainColor(255, 1), this.mc.crosshairTarget.getPos(), ((PlayerEntity) next).getLerpedPos(RenderTickCounter.ONE.getTickDelta(true)));
++                    RenderUtils.renderLine(render3DEvent.matrixStack, Utils.getMainColor(255, 1), this.mc.crosshairTarget.getPos(), ((PlayerEntity) next).getLerpedPos(RenderTickCounter.ONE.getTickProgress(true)));
+                 }
+                 render3DEvent.matrixStack.pop();
+             }
+         }
+     }
+ 
+-    private void renderPlayerOutline(final PlayerEntity playerEntity, final Color color, final MatrixStack matrixStack) {
+-        final float n = color.brighter().getRed() / 255.0f;
+-        final float n2 = color.brighter().getGreen() / 255.0f;
+-        final float n3 = color.brighter().getBlue() / 255.0f;
+-        final float n4 = color.brighter().getAlpha() / 255.0f;
+-        final Camera camera = this.mc.gameRenderer.getCamera();
+-        final Vec3d subtract = playerEntity.getLerpedPos(RenderTickCounter.ONE.getTickDelta(true)).subtract(camera.getPos());
+-        final float n5 = (float) subtract.x;
+-        final float n6 = (float) subtract.y;
+-        final float n7 = (float) subtract.z;
+-        final double radians = Math.toRadians(camera.getYaw() + 90.0f);
+-        final double n8 = Math.sin(radians) * (playerEntity.getWidth() / 1.7);
+-        final double n9 = Math.cos(radians) * (playerEntity.getWidth() / 1.7);
+-        matrixStack.push();
+-        final Matrix4f positionMatrix = matrixStack.peek().getPositionMatrix();
+-        RenderSystem.setShader((Supplier) GameRenderer::getPositionColorProgram);
+-        if (Krypton.enableMSAA.getValue()) {
+-            GL11.glEnable(32925);
+-            GL11.glEnable(2848);
+-            GL11.glHint(3154, 4354);
+-        }
+-        GL11.glDepthFunc(519);
+-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+-        RenderSystem.defaultBlendFunc();
+-        RenderSystem.enableBlend();
+-        GL11.glLineWidth((float) this.lineWidth.getIntValue());
+-        final BufferBuilder begin = Tessellator.getInstance().begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
+-        begin.vertex(positionMatrix, n5 + (float) n8, n6, n7 + (float) n9).color(n, n2, n3, n4);
+-        begin.vertex(positionMatrix, n5 - (float) n8, n6, n7 - (float) n9).color(n, n2, n3, n4);
+-        begin.vertex(positionMatrix, n5 - (float) n8, n6, n7 - (float) n9).color(n, n2, n3, n4);
+-        begin.vertex(positionMatrix, n5 - (float) n8, n6 + playerEntity.getHeight(), n7 - (float) n9).color(n, n2, n3, n4);
+-        begin.vertex(positionMatrix, n5 - (float) n8, n6 + playerEntity.getHeight(), n7 - (float) n9).color(n, n2, n3, n4);
+-        begin.vertex(positionMatrix, n5 + (float) n8, n6 + playerEntity.getHeight(), n7 + (float) n9).color(n, n2, n3, n4);
+-        begin.vertex(positionMatrix, n5 + (float) n8, n6 + playerEntity.getHeight(), n7 + (float) n9).color(n, n2, n3, n4);
+-        begin.vertex(positionMatrix, n5 + (float) n8, n6, n7 + (float) n9).color(n, n2, n3, n4);
+-        begin.vertex(positionMatrix, n5 + (float) n8, n6, n7 + (float) n9).color(n, n2, n3, n4);
+-        BufferRenderer.drawWithGlobalProgram(begin.end());
+-        GL11.glDepthFunc(515);
+-        GL11.glLineWidth(1.0f);
+-        RenderSystem.disableBlend();
+-        if (Krypton.enableMSAA.getValue()) {
+-            GL11.glDisable(2848);
+-            GL11.glDisable(32925);
+-        }
+-        matrixStack.pop();
+-    }
++    // renderPlayerOutline: hệ thống vẽ 3D cũ không còn ở 1.21.11, tạm bỏ.
+ 
+     private Color getColorWithAlpha(final int a) {
+         final int f = Krypton.redColor.getIntValue();
+diff -ruN a/src/main/java/skid/krypton/module/modules/render/TargetHUD.java b/src/main/java/skid/krypton/module/modules/render/TargetHUD.java
+--- a/src/main/java/skid/krypton/module/modules/render/TargetHUD.java	2026-11-21 16:08:01.784133779 +0000
++++ b/src/main/java/skid/krypton/module/modules/render/TargetHUD.java	2026-11-21 16:08:01.787411656 +0000
+@@ -59,6 +59,7 @@
+         final float g = this.fadeSpeed.getFloatValue();
+         final Color h = this.primaryColor;
+         final Color i = this.backgroundColor;
++        RenderUtils.currentContext = a;
+         RenderUtils.unscaledProjection();
+         final boolean b = this.mc.player.getAttacking() != null && this.mc.player.getAttacking() instanceof PlayerEntity && this.mc.player.getAttacking().isAlive();
+         final boolean b2 = !this.timeoutEnabled.getValue() || System.currentTimeMillis() - this.lastAttackTime <= 10000L;
+@@ -72,22 +73,22 @@
+         if (TargetHUD.fadeProgress < 0.99f && b) {
+             final LivingEntity getAttacking = this.mc.player.getAttacking();
+             final PlayerListEntry playerListEntry = this.mc.getNetworkHandler().getPlayerListEntry(getAttacking.getUuid());
+-            final MatrixStack matrices = a.getMatrices();
+-            matrices.push();
++            final org.joml.Matrix3x2fStack matrices = a.getMatrices();
++            matrices.pushMatrix();
+             final float n2 = 1.0f - TargetHUD.fadeProgress;
+             final float n3 = 0.8f + 0.2f * n2;
+-            matrices.translate((float) f, (float) f2, 0.0f);
+-            matrices.scale(n3, n3, 1.0f);
+-            matrices.translate((float) (-f), (float) (-f2), 0.0f);
++            matrices.translate((float) f, (float) f2);
++            matrices.scale(n3, n3);
++            matrices.translate((float) (-f), (float) (-f2));
+             this.currentHealth = RenderUtils.fast(this.currentHealth, getAttacking.getHealth() + getAttacking.getAbsorptionAmount(), g * 0.5f);
+             this.a(a, f, f2, (PlayerEntity) getAttacking, playerListEntry, n2, h, i);
+-            matrices.pop();
++            matrices.popMatrix();
+         }
+         RenderUtils.scaledProjection();
+     }
+ 
+     private void a(final DrawContext drawContext, final int n, final int n2, final PlayerEntity playerEntity, final PlayerListEntry playerListEntry, final float n3, final Color color, final Color color2) {
+-        final MatrixStack matrices = drawContext.getMatrices();
++        final org.joml.Matrix3x2fStack matrices = drawContext.getMatrices();
+         RenderUtils.renderRoundedQuad(matrices, new Color(color.getRed(), color.getGreen(), color.getBlue(), (int) (50.0f * n3)), n - 5, n2 - 5, n + 300 + 5, n2 + 180 + 5, 15.0, 15.0, 15.0, 15.0, 30.0);
+         RenderUtils.renderRoundedQuad(matrices, new Color(color2.getRed(), color2.getGreen(), color2.getBlue(), (int) (color2.getAlpha() * n3)), n, n2, n + 300, n2 + 180, 10.0, 10.0, 10.0, 10.0, 20.0);
+         final Color color3 = new Color(color.getRed(), color.getGreen(), color.getBlue(), (int) (color.getAlpha() * n3));
+@@ -95,7 +96,7 @@
+         RenderUtils.renderRoundedQuad(matrices, color3, n + 20, n2 + 180 - 3, n + 300 - 20, n2 + 180, 0.0, 0.0, 0.0, 0.0, 10.0);
+         if (playerListEntry != null) {
+             RenderUtils.renderRoundedQuad(matrices, new Color(30, 30, 30, (int) (200.0f * n3)), n + 15, n2 + 15, n + 85, n2 + 85, 5.0, 5.0, 5.0, 5.0, 10.0);
+-            PlayerSkinDrawer.draw(drawContext, playerListEntry.getSkinTextures().texture(), n + 25, n2 + 25, 50);
++            PlayerSkinDrawer.draw(drawContext, playerListEntry.getSkinTextures(), n + 25, n2 + 25, 50);
+             TextRenderer.drawString(playerEntity.getName().getString(), drawContext, n + 100, n2 + 25, ColorUtil.a((int) (System.currentTimeMillis() % 1000L / 1000.0f), 1).getRGB());
+             TextRenderer.drawString(MathUtil.roundToNearest(playerEntity.distanceTo(this.mc.player), 1.0) + " blocks away", drawContext, n + 100, n2 + 45, Color.WHITE.getRGB());
+             RenderUtils.renderRoundedQuad(matrices, new Color(60, 60, 60, (int) (200.0f * n3)), n + 15, n2 + 95, n + 300 - 15, n2 + 110, 5.0, 5.0, 5.0, 5.0, 10.0);
+@@ -130,7 +131,7 @@
+     }
+ 
+     private void a(final DrawContext drawContext, final int n, final int n2, final int n3, final int n4, final String s, final String s2, final Color color, final Color color2, final float n5) {
+-        final MatrixStack matrices = drawContext.getMatrices();
++        final org.joml.Matrix3x2fStack matrices = drawContext.getMatrices();
+         RenderUtils.renderRoundedQuad(matrices, color2, n, n2, n + n3, n2 + 3, 3.0, 3.0, 0.0, 0.0, 6.0);
+         RenderUtils.renderRoundedQuad(matrices, new Color(30, 30, 30, (int) (200.0f * n5)), n, n2 + 3, n + n3, n2 + n4, 0.0, 0.0, 3.0, 3.0, 6.0);
+         TextRenderer.drawString(s, drawContext, n + n3 / 2 - TextRenderer.getWidth(s) / 2, n2 + 5, new Color(200, 200, 200, (int) (255.0f * n5)).getRGB());
+diff -ruN a/src/main/java/skid/krypton/utils/BlockUtil.java b/src/main/java/skid/krypton/utils/BlockUtil.java
+--- a/src/main/java/skid/krypton/utils/BlockUtil.java	2026-11-21 16:08:01.784279256 +0000
++++ b/src/main/java/skid/krypton/utils/BlockUtil.java	2026-11-21 16:08:01.787570763 +0000
+@@ -62,7 +62,7 @@
+ 
+     public static void interactWithBlock(final BlockHitResult blockHitResult, final boolean shouldSwingHand) {
+         final ActionResult result = mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, blockHitResult);
+-        if (result.isAccepted() && result.shouldSwingHand() && shouldSwingHand) {
++        if (result.isAccepted() && skid.krypton.utils.CompatUtil.shouldSwing(result) && shouldSwingHand) {
+             mc.player.swingHand(Hand.MAIN_HAND);
+         }
+     }
+diff -ruN a/src/main/java/skid/krypton/utils/CompatUtil.java b/src/main/java/skid/krypton/utils/CompatUtil.java
+--- a/src/main/java/skid/krypton/utils/CompatUtil.java	1970-01-01 00:00:00.000000000 +0000
++++ b/src/main/java/skid/krypton/utils/CompatUtil.java	2026-11-21 16:08:01.787549447 +0000
+@@ -0,0 +1,14 @@
++package skid.krypton.utils;
++
++import net.minecraft.util.ActionResult;
++
++/** Các hàm tương thích giữa 1.21.1 và 1.21.11. */
++public final class CompatUtil {
++    private CompatUtil() {
++    }
++
++    /** Thay cho ActionResult.shouldSwingHand() đã bị bỏ. */
++    public static boolean shouldSwing(final ActionResult result) {
++        return result instanceof ActionResult.Success success && success.swingSource() != ActionResult.SwingSource.NONE;
++    }
++}
+diff -ruN a/src/main/java/skid/krypton/utils/FakeInvScreen.java b/src/main/java/skid/krypton/utils/FakeInvScreen.java
+--- a/src/main/java/skid/krypton/utils/FakeInvScreen.java	2026-11-21 16:08:01.784325629 +0000
++++ b/src/main/java/skid/krypton/utils/FakeInvScreen.java	2026-11-21 16:08:01.787608124 +0000
+@@ -17,7 +17,7 @@
+     }
+ 
+     @Override
+-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
++    public boolean mouseClicked(net.minecraft.client.gui.Click click, boolean doubled) {
+         return false; // Prevent mouse clicks from being processed
+     }
+ }
+diff -ruN a/src/main/java/skid/krypton/utils/InventoryUtil.java b/src/main/java/skid/krypton/utils/InventoryUtil.java
+--- a/src/main/java/skid/krypton/utils/InventoryUtil.java	2026-11-21 16:08:01.784338698 +0000
++++ b/src/main/java/skid/krypton/utils/InventoryUtil.java	2026-11-21 16:08:01.787616488 +0000
+@@ -15,7 +15,7 @@
+         if (selectedSlot < 0 || selectedSlot > 8) {
+             return;
+         }
+-        Krypton.mc.player.getInventory().selectedSlot = selectedSlot;
++        Krypton.mc.player.getInventory().setSelectedSlot(selectedSlot);
+         ((ClientPlayerInteractionManagerAccessor) Krypton.mc.interactionManager).syncSlot();
+     }
+ 
+@@ -23,7 +23,7 @@
+         final PlayerInventory getInventory = Krypton.mc.player.getInventory();
+         for (int i = 0; i < 9; ++i) {
+             if (predicate.test(getInventory.getStack(i))) {
+-                getInventory.selectedSlot = i;
++                getInventory.setSelectedSlot(i);
+                 return true;
+             }
+         }
+@@ -34,7 +34,7 @@
+         final PlayerInventory getInventory = Krypton.mc.player.getInventory();
+         for (int i = 0; i < 9; ++i) {
+             if (predicate.test(getInventory.getStack(i).getItem())) {
+-                getInventory.selectedSlot = i;
++                getInventory.setSelectedSlot(i);
+                 return true;
+             }
+         }
+diff -ruN a/src/main/java/skid/krypton/utils/RenderUtils.java b/src/main/java/skid/krypton/utils/RenderUtils.java
+--- a/src/main/java/skid/krypton/utils/RenderUtils.java	2026-11-21 16:08:01.784369762 +0000
++++ b/src/main/java/skid/krypton/utils/RenderUtils.java	2026-11-21 16:08:01.787648154 +0000
+@@ -1,36 +1,36 @@
+ package skid.krypton.utils;
+ 
+-import com.mojang.blaze3d.systems.RenderSystem;
+-import com.mojang.blaze3d.systems.VertexSorter;
+-import net.minecraft.client.MinecraftClient;
+-import net.minecraft.client.gl.ShaderProgram;
+ import net.minecraft.client.gui.DrawContext;
+-import net.minecraft.client.gui.screen.Screen;
+-import net.minecraft.client.render.*;
++import net.minecraft.client.render.Camera;
+ import net.minecraft.client.util.math.MatrixStack;
+ import net.minecraft.entity.player.PlayerEntity;
+ import net.minecraft.item.ItemStack;
+ import net.minecraft.util.math.MathHelper;
+ import net.minecraft.util.math.RotationAxis;
+ import net.minecraft.util.math.Vec3d;
+-import org.joml.Matrix4f;
+-import org.lwjgl.opengl.GL11;
++import org.joml.Matrix3x2fStack;
+ import skid.krypton.Krypton;
+ 
+-import java.awt.*;
+-import java.util.function.Consumer;
+-import java.util.function.Supplier;
++import java.awt.Color;
+ 
++/**
++ * Bản viết lại cho 1.21.11: phần 2D dùng DrawContext.fill (bo góc bằng các dải ngang),
++ * phần 3D (ESP) tạm thời không vẽ vì hệ thống vẽ cũ đã bị Mojang thay thế.
++ */
+ public final class RenderUtils {
+-    public static VertexSorter vertexSorter;
+     public static boolean rendering3D;
++    /** DrawContext của khung hình hiện tại, được đặt trước khi vẽ giao diện. */
++    public static DrawContext currentContext;
++
++    private static DrawContext projContext;
++    private static int projDepth = 0;
+ 
+     public static Vec3d getCameraPos() {
+-        return getCamera().getPos();
++        return getCamera().getCameraPos();
+     }
+ 
+     public static Camera getCamera() {
+-        return Krypton.mc.getBlockEntityRenderDispatcher().camera;
++        return Krypton.mc.gameRenderer.getCamera();
+     }
+ 
+     public static double deltaTime() {
+@@ -54,241 +54,153 @@
+         return new Vec3d(sin * cos2, MathHelper.sin(playerEntity.getPitch() * 0.017453292f), cos * cos2).normalize();
+     }
+ 
++    /** Chuyển sang toạ độ điểm ảnh thật (thu nhỏ theo hệ số GUI scale). */
+     public static void unscaledProjection() {
+-        RenderUtils.vertexSorter = RenderSystem.getVertexSorting();
+-        RenderSystem.setProjectionMatrix(new Matrix4f().setOrtho(0.0f, (float) Krypton.mc.getWindow().getFramebufferWidth(), (float) Krypton.mc.getWindow().getFramebufferHeight(), 0.0f, 1000.0f, 21000.0f), VertexSorter.BY_Z);
+-        RenderUtils.rendering3D = false;
++        if (projDepth == 0 && currentContext != null) {
++            final double sf = Krypton.mc.getWindow().getScaleFactor();
++            projContext = currentContext;
++            projContext.getMatrices().pushMatrix();
++            projContext.getMatrices().scale((float) (1.0 / sf), (float) (1.0 / sf));
++        }
++        if (projContext != null) {
++            projDepth++;
++        }
++        rendering3D = false;
+     }
+ 
++    /** Trở lại toạ độ GUI bình thường. */
+     public static void scaledProjection() {
+-        RenderSystem.setProjectionMatrix(new Matrix4f().setOrtho(0.0f, (float) (Krypton.mc.getWindow().getFramebufferWidth() / Krypton.mc.getWindow().getScaleFactor()), (float) (Krypton.mc.getWindow().getFramebufferHeight() / Krypton.mc.getWindow().getScaleFactor()), 0.0f, 1000.0f, 21000.0f), RenderUtils.vertexSorter);
+-        RenderUtils.rendering3D = true;
+-    }
+-
+-    public static void renderRoundedQuad(final MatrixStack matrixStack, final Color color, final double n, final double n2, final double n3, final double n4, final double n5, final double n6, final double n7, final double n8, final double n9) {
+-        final int rgb = color.getRGB();
+-        final Matrix4f positionMatrix = matrixStack.peek().getPositionMatrix();
+-        RenderSystem.enableBlend();
+-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+-        RenderSystem.setShader((Supplier) GameRenderer::getPositionColorProgram);
+-        renderRoundedQuadInternal(positionMatrix, (rgb >> 16 & 0xFF) / 255.0f, (rgb >> 8 & 0xFF) / 255.0f, (rgb & 0xFF) / 255.0f, (rgb >> 24 & 0xFF) / 255.0f, n, n2, n3, n4, n5, n6, n7, n8, n9);
+-        RenderSystem.enableCull();
+-        RenderSystem.disableBlend();
+-    }
+-
+-    private static void setup() {
+-        RenderSystem.enableBlend();
+-        RenderSystem.defaultBlendFunc();
+-    }
+-
+-    private static void cleanup() {
+-        RenderSystem.enableCull();
+-        RenderSystem.disableBlend();
+-    }
+-
+-    public static void renderRoundedQuad(final MatrixStack matrixStack, final Color color, final double n, final double n2, final double n3, final double n4, final double n5, final double n6) {
+-        renderRoundedQuad(matrixStack, color, n, n2, n3, n4, n5, n5, n5, n5, n6);
+-    }
+-
+-    public static void renderRoundedOutlineInternal(final Matrix4f matrix4f, final float n, final float n2, final float n3, final float n4, final double n5, final double n6, final double n7, final double n8, final double n9, final double n10, final double n11, final double n12, final double n13, final double n14) {
+-        final BufferBuilder begin = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR);
+-        final double[][] array = new double[4][];
+-        array[0] = new double[]{n7 - n12, n8 - n12, n12};
+-        array[1] = new double[]{n7 - n10, n6 + n10, n10};
+-        array[2] = new double[]{n5 + n9, n6 + n9, n9};
+-        array[3] = new double[]{n5 + n11, n8 - n11, n11};
+-        for (int i = 0; i < 4; ++i) {
+-            final double[] array2 = array[i];
+-            final double n15 = array2[2];
+-            for (double angdeg = i * 90.0; angdeg < 90.0 + i * 90.0; angdeg += 90.0 / n14) {
+-                final double radians = Math.toRadians(angdeg);
+-                final double sin = Math.sin((float) radians);
+-                final double n16 = sin * n15;
+-                final double cos = Math.cos((float) radians);
+-                final double n17 = cos * n15;
+-                begin.vertex(matrix4f, (float) array2[0] + (float) n16, (float) array2[1] + (float) n17, 0.0f).color(n, n2, n3, n4);
+-                begin.vertex(matrix4f, (float) (array2[0] + (float) n16 + sin * n13), (float) (array2[1] + (float) n17 + cos * n13), 0.0f).color(n, n2, n3, n4);
++        if (projDepth > 0) {
++            projDepth--;
++            if (projDepth == 0 && projContext != null) {
++                projContext.getMatrices().popMatrix();
++                projContext = null;
+             }
+-            final double radians2 = Math.toRadians(90.0 + i * 90.0);
+-            final double sin2 = Math.sin((float) radians2);
+-            final double n18 = sin2 * n15;
+-            final double cos2 = Math.cos((float) radians2);
+-            final double n19 = cos2 * n15;
+-            begin.vertex(matrix4f, (float) array2[0] + (float) n18, (float) array2[1] + (float) n19, 0.0f).color(n, n2, n3, n4);
+-            begin.vertex(matrix4f, (float) (array2[0] + (float) n18 + sin2 * n13), (float) (array2[1] + (float) n19 + cos2 * n13), 0.0f).color(n, n2, n3, n4);
+-        }
+-        final double[] array3 = array[0];
+-        final double n20 = array3[2];
+-        begin.vertex(matrix4f, (float) array3[0], (float) array3[1] + (float) n20, 0.0f).color(n, n2, n3, n4);
+-        begin.vertex(matrix4f, (float) array3[0], (float) (array3[1] + (float) n20 + n13), 0.0f).color(n, n2, n3, n4);
+-        BufferRenderer.drawWithGlobalProgram(begin.end());
+-    }
+-
+-    public static void setScissorRegion(final int n, final int n2, final int n3, final int n4) {
+-        final MinecraftClient instance = MinecraftClient.getInstance();
+-        final Screen currentScreen = instance.currentScreen;
+-        int n5;
+-        if (instance.currentScreen == null) {
+-            n5 = 0;
+-        } else {
+-            n5 = currentScreen.height - n4;
+         }
+-        final double scaleFactor = MinecraftClient.getInstance().getWindow().getScaleFactor();
+-        GL11.glScissor((int) (n * scaleFactor), (int) (n5 * scaleFactor), (int) ((n3 - n) * scaleFactor), (int) ((n4 - n2) * scaleFactor));
+-        GL11.glEnable(3089);
+-    }
+-
+-    public static void renderCircle(final MatrixStack matrixStack, final Color color, final double n, final double n2, final double n3, final int n4) {
+-        final int clamp = MathHelper.clamp(n4, 4, 360);
+-        final int rgb = color.getRGB();
+-        final Matrix4f positionMatrix = matrixStack.peek().getPositionMatrix();
+-        setup();
+-        RenderSystem.setShader((Supplier) GameRenderer::getPositionColorProgram);
+-        final BufferBuilder begin = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
+-        for (int i = 0; i < 360; i += Math.min(360 / clamp, 360 - i)) {
+-            final double radians = Math.toRadians(i);
+-            begin.vertex(positionMatrix, (float) (n + Math.sin(radians) * n3), (float) (n2 + Math.cos(radians) * n3), 0.0f).color((rgb >> 16 & 0xFF) / 255.0f, (rgb >> 8 & 0xFF) / 255.0f, (rgb & 0xFF) / 255.0f, (rgb >> 24 & 0xFF) / 255.0f);
+-        }
+-        BufferRenderer.drawWithGlobalProgram(begin.end());
+-        cleanup();
+-    }
+-
+-    public static void renderShaderRect(final MatrixStack matrixStack, final Color color, final Color color2, final Color color3, final Color color4, final float n, final float n2, final float n3, final float n4, final float n5, final float n6) {
+-        RenderSystem.enableBlend();
+-        RenderSystem.defaultBlendFunc();
+-        final BufferBuilder begin = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n - 10.0f, n2 - 10.0f, 0.0f);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n - 10.0f, n2 + n4 + 20.0f, 0.0f);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n + n3 + 20.0f, n2 + n4 + 20.0f, 0.0f);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n + n3 + 20.0f, n2 - 10.0f, 0.0f);
+-        BufferRenderer.drawWithGlobalProgram(begin.end());
+-        RenderSystem.disableBlend();
+-    }
+-
+-    public static void renderRoundedOutline(final DrawContext drawContext, final Color color, final double n, final double n2, final double n3, final double n4, final double n5, final double n6, final double n7, final double n8, final double n9, final double n10) {
+-        final int rgb = color.getRGB();
+-        final Matrix4f positionMatrix = drawContext.getMatrices().peek().getPositionMatrix();
+-        setup();
+-        RenderSystem.setShader((Supplier) GameRenderer::getPositionColorProgram);
+-        renderRoundedOutlineInternal(positionMatrix, (rgb >> 16 & 0xFF) / 255.0f, (rgb >> 8 & 0xFF) / 255.0f, (rgb & 0xFF) / 255.0f, (rgb >> 24 & 0xFF) / 255.0f, n, n2, n3, n4, n5, n6, n7, n8, n9, n10);
+-        cleanup();
++        rendering3D = true;
+     }
+ 
+-    public static MatrixStack matrixFrom(final double n, final double n2, final double n3) {
+-        final MatrixStack matrixStack = new MatrixStack();
+-        final Camera camera = MinecraftClient.getInstance().gameRenderer.getCamera();
+-        matrixStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(camera.getPitch()));
+-        matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(camera.getYaw() + 180.0f));
+-        matrixStack.translate(n - camera.getPos().x, n2 - camera.getPos().y, n3 - camera.getPos().z);
+-        return matrixStack;
++    // ------------------------------------------------------------------ hình chữ nhật bo góc
++    private static double cornerInset(final double dist, final double r) {
++        if (r <= 0.0 || dist >= r) {
++            return 0.0;
++        }
++        final double dy = r - dist;
++        return r - Math.sqrt(Math.max(0.0, r * r - dy * dy));
+     }
+ 
+-    public static void renderQuad(final MatrixStack matrixStack, final float n, final float n2, final float n3, final float n4, final int n5) {
+-        final float n6 = (n5 >> 24 & 0xFF) / 255.0f;
+-        final float n7 = (n5 >> 16 & 0xFF) / 255.0f;
+-        final float n8 = (n5 >> 8 & 0xFF) / 255.0f;
+-        final float n9 = (n5 & 0xFF) / 255.0f;
+-        matrixStack.push();
+-        matrixStack.scale(0.5f, 0.5f, 0.5f);
+-        matrixStack.translate(n, n2, 0.0);
+-        final Tessellator instance = Tessellator.getInstance();
+-        RenderSystem.enableBlend();
+-        RenderSystem.defaultBlendFunc();
+-        final BufferBuilder begin = instance.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+-        begin.vertex(0.0f, 0.0f, 0.0f).color(n7, n8, n9, n6);
+-        begin.vertex(0.0f, n4, 0.0f).color(n7, n8, n9, n6);
+-        begin.vertex(n3, n4, 0.0f).color(n7, n8, n9, n6);
+-        begin.vertex(n3, 0.0f, 0.0f).color(n7, n8, n9, n6);
+-        BufferRenderer.drawWithGlobalProgram(begin.end());
+-        RenderSystem.disableBlend();
+-        matrixStack.pop();
+-    }
+-
+-    public static void renderRoundedQuadInternal(final Matrix4f matrix4f, final float n, final float n2, final float n3, final float n4, final double n5, final double n6, final double n7, final double n8, final double n9, final double n10, final double n11, final double n12, final double n13) {
+-        final BufferBuilder begin = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
+-        final double[][] array = new double[4][];
+-        array[0] = new double[]{n7 - n12, n8 - n12, n12};
+-        array[1] = new double[]{n7 - n10, n6 + n10, n10};
+-        array[2] = new double[]{n5 + n9, n6 + n9, n9};
+-        array[3] = new double[]{n5 + n11, n8 - n11, n11};
+-        for (int i = 0; i < 4; ++i) {
+-            final double[] array2 = array[i];
+-            final double n14 = array2[2];
+-            for (double angdeg = i * 90.0; angdeg < 90.0 + i * 90.0; angdeg += 90.0 / n13) {
+-                final double radians = Math.toRadians(angdeg);
+-                begin.vertex(matrix4f, (float) array2[0] + (float) (Math.sin((float) radians) * n14), (float) array2[1] + (float) (Math.cos((float) radians) * n14), 0.0f).color(n, n2, n3, n4);
++    private static void fillRounded(final DrawContext ctx, final int argb, final double x1, final double y1, final double x2, final double y2, double rTL, double rTR, double rBL, double rBR) {
++        if (ctx == null || (argb >>> 24) == 0) {
++            return;
++        }
++        final int xl = (int) Math.round(Math.min(x1, x2));
++        final int xr = (int) Math.round(Math.max(x1, x2));
++        final int yt = (int) Math.round(Math.min(y1, y2));
++        final int yb = (int) Math.round(Math.max(y1, y2));
++        if (xr <= xl || yb <= yt) {
++            return;
++        }
++        final double maxR = Math.min(xr - xl, yb - yt) / 2.0;
++        rTL = Math.min(Math.max(rTL, 0.0), maxR);
++        rTR = Math.min(Math.max(rTR, 0.0), maxR);
++        rBL = Math.min(Math.max(rBL, 0.0), maxR);
++        rBR = Math.min(Math.max(rBR, 0.0), maxR);
++        int runStart = yt;
++        int runL = Integer.MIN_VALUE;
++        int runR = Integer.MIN_VALUE;
++        for (int y = yt; y < yb; ++y) {
++            final double cy = y + 0.5;
++            final double fromTop = cy - yt;
++            final double fromBottom = yb - cy;
++            final int l = xl + (int) Math.round(Math.max(cornerInset(fromTop, rTL), cornerInset(fromBottom, rBL)));
++            final int r = xr - (int) Math.round(Math.max(cornerInset(fromTop, rTR), cornerInset(fromBottom, rBR)));
++            if (l != runL || r != runR) {
++                if (runR > runL) {
++                    ctx.fill(runL, runStart, runR, y, argb);
++                }
++                runStart = y;
++                runL = l;
++                runR = r;
+             }
+-            final double radians2 = Math.toRadians(90.0 + i * 90.0);
+-            begin.vertex(matrix4f, (float) array2[0] + (float) (Math.sin((float) radians2) * n14), (float) array2[1] + (float) (Math.cos((float) radians2) * n14), 0.0f).color(n, n2, n3, n4);
+         }
+-        BufferRenderer.drawWithGlobalProgram(begin.end());
++        if (runR > runL) {
++            ctx.fill(runL, runStart, runR, yb, argb);
++        }
+     }
+ 
+-    public static void renderFilledBox(final MatrixStack matrixStack, final float n, final float n2, final float n3, final float n4, final float n5, final float n6, final Color color) {
+-        RenderSystem.enableBlend();
+-        RenderSystem.disableDepthTest();
+-        RenderSystem.setShaderColor(color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f, color.getAlpha() / 255.0f);
+-        RenderSystem.setShader((Supplier) GameRenderer::getPositionProgram);
+-        final BufferBuilder begin = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n, n2, n3);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n, n2, n3);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n, n2, n3);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n, n2, n6);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n, n5, n3);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n, n5, n6);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n, n5, n6);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n, n2, n6);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n4, n5, n6);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n4, n2, n6);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n4, n2, n6);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n4, n2, n3);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n4, n5, n6);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n4, n5, n3);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n4, n5, n3);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n4, n2, n3);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n, n5, n3);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n, n2, n3);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n, n2, n3);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n4, n2, n3);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n, n2, n6);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n4, n2, n6);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n4, n2, n6);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n, n5, n3);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n, n5, n3);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n, n5, n6);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n4, n5, n3);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n4, n5, n6);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n4, n5, n6);
+-        begin.vertex(matrixStack.peek().getPositionMatrix(), n4, n5, n6);
+-        BufferRenderer.drawWithGlobalProgram(begin.end());
+-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+-        RenderSystem.enableDepthTest();
+-        RenderSystem.disableBlend();
++    public static void renderRoundedQuad(final Matrix3x2fStack matrices, final Color color, final double n, final double n2, final double n3, final double n4, final double n5, final double n6, final double n7, final double n8, final double n9) {
++        // thứ tự bán kính: trên-trái, trên-phải, dưới-trái, dưới-phải
++        fillRounded(currentContext, color.getRGB(), n, n2, n3, n4, n5, n6, n7, n8);
+     }
+ 
+-    public static void renderLine(final MatrixStack matrixStack, final Color color, final Vec3d vec3d, final Vec3d vec3d2) {
+-        matrixStack.push();
+-        final Matrix4f positionMatrix = matrixStack.peek().getPositionMatrix();
+-        if (skid.krypton.module.modules.client.Krypton.enableMSAA.getValue()) {
+-            GL11.glEnable(32925);
+-            GL11.glEnable(2848);
+-            GL11.glHint(3154, 4354);
+-        }
+-        GL11.glDepthFunc(519);
+-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+-        RenderSystem.defaultBlendFunc();
+-        RenderSystem.enableBlend();
+-        genericAABBRender(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR, GameRenderer::getPositionColorProgram, positionMatrix, vec3d, vec3d2.subtract(vec3d), color, (bufferBuilder, n, n3, n5, n7, n9, n11, n13, n15, n17, n19, matrix4f) -> {
+-            bufferBuilder.vertex(matrix4f, n, n3, n5).color(n13, n15, n17, n19);
+-            bufferBuilder.vertex(matrix4f, n7, n9, n11).color(n13, n15, n17, n19);
+-        });
+-        GL11.glDepthFunc(515);
+-        RenderSystem.disableBlend();
+-        if (skid.krypton.module.modules.client.Krypton.enableMSAA.getValue()) {
+-            GL11.glDisable(2848);
+-            GL11.glDisable(32925);
++    public static void renderRoundedQuad(final Matrix3x2fStack matrices, final Color color, final double n, final double n2, final double n3, final double n4, final double n5, final double n6) {
++        renderRoundedQuad(matrices, color, n, n2, n3, n4, n5, n5, n5, n5, n6);
++    }
++
++    public static void renderCircle(final Matrix3x2fStack matrices, final Color color, final double cx, final double cy, final double radius, final int segments) {
++        final DrawContext ctx = currentContext;
++        final int argb = color.getRGB();
++        if (ctx == null || (argb >>> 24) == 0 || radius <= 0.0) {
++            return;
++        }
++        final int baseY = (int) Math.round(cy);
++        final int range = (int) Math.ceil(radius);
++        for (int dy = -range; dy < range; ++dy) {
++            final double yc = dy + 0.5;
++            if (Math.abs(yc) > radius) {
++                continue;
++            }
++            final double hw = Math.sqrt(radius * radius - yc * yc);
++            final int x1 = (int) Math.round(cx - hw);
++            final int x2 = (int) Math.round(cx + hw);
++            if (x2 > x1) {
++                ctx.fill(x1, baseY + dy, x2, baseY + dy + 1, argb);
++            }
++        }
++    }
++
++    public static void renderRoundedOutline(final DrawContext drawContext, final Color color, final double n, final double n2, final double n3, final double n4, final double n5, final double n6, final double n7, final double n8, final double thickness, final double samples) {
++        final int argb = color.getRGB();
++        if (drawContext == null || (argb >>> 24) == 0) {
++            return;
++        }
++        final int xl = (int) Math.round(Math.min(n, n3));
++        final int xr = (int) Math.round(Math.max(n, n3));
++        final int yt = (int) Math.round(Math.min(n2, n4));
++        final int yb = (int) Math.round(Math.max(n2, n4));
++        if (xr <= xl || yb <= yt) {
++            return;
++        }
++        final int t = Math.max(1, (int) Math.round(thickness));
++        final double maxR = Math.min(xr - xl, yb - yt) / 2.0;
++        final double rTL = Math.min(Math.max(n5, 0.0), maxR);
++        final double rTR = Math.min(Math.max(n6, 0.0), maxR);
++        final double rBL = Math.min(Math.max(n7, 0.0), maxR);
++        final double rBR = Math.min(Math.max(n8, 0.0), maxR);
++        for (int y = yt; y < yb; ++y) {
++            final double cy = y + 0.5;
++            final double fromTop = cy - yt;
++            final double fromBottom = yb - cy;
++            final int ol = xl + (int) Math.round(Math.max(cornerInset(fromTop, rTL), cornerInset(fromBottom, rBL)));
++            final int or = xr - (int) Math.round(Math.max(cornerInset(fromTop, rTR), cornerInset(fromBottom, rBR)));
++            if (or <= ol) {
++                continue;
++            }
++            if (fromTop <= t || fromBottom <= t) {
++                drawContext.fill(ol, y, or, y + 1, argb);
++                continue;
++            }
++            final double iTop = fromTop - t;
++            final double iBottom = fromBottom - t;
++            final int il = xl + t + (int) Math.round(Math.max(cornerInset(iTop, rTL - t), cornerInset(iBottom, rBL - t)));
++            final int ir = xr - t - (int) Math.round(Math.max(cornerInset(iTop, rTR - t), cornerInset(iBottom, rBR - t)));
++            if (il > ol) {
++                drawContext.fill(ol, y, Math.min(il, or), y + 1, argb);
++            }
++            if (or > ir) {
++                drawContext.fill(Math.max(ir, ol), y, or, y + 1, argb);
++            }
+         }
+-        matrixStack.pop();
+     }
+ 
+     public static void drawItem(final DrawContext drawContext, final ItemStack itemStack, final int n, final int n2, final float n3, final int n4) {
+@@ -296,44 +208,29 @@
+             return;
+         }
+         final float n5 = n3 / 16.0f;
+-        final MatrixStack matrices = drawContext.getMatrices();
+-        matrices.push();
+-        matrices.translate((float) n, (float) n2, (float) n4);
+-        matrices.scale(n5, n5, 1.0f);
++        final Matrix3x2fStack matrices = drawContext.getMatrices();
++        matrices.pushMatrix();
++        matrices.translate((float) n, (float) n2);
++        matrices.scale(n5, n5);
+         drawContext.drawItem(itemStack, 0, 0);
+-        matrices.pop();
+-    }
+-
+-    private static void genericAABBRender(VertexFormat.DrawMode mode, VertexFormat format, Supplier<ShaderProgram> shader, Matrix4f stack, Vec3d start, Vec3d dimensions, Color color, RenderAction action) {
+-        float red = color.getRed() / 255f;
+-        float green = color.getGreen() / 255f;
+-        float blue = color.getBlue() / 255f;
+-        float alpha = color.getAlpha() / 255f;
+-        Vec3d end = start.add(dimensions);
+-        float x1 = (float) start.x;
+-        float y1 = (float) start.y;
+-        float z1 = (float) start.z;
+-        float x2 = (float) end.x;
+-        float y2 = (float) end.y;
+-        float z2 = (float) end.z;
+-        useBuffer(mode, format, shader, bufferBuilder -> action.run(bufferBuilder, x1, y1, z1, x2, y2, z2, red, green, blue, alpha, stack));
++        matrices.popMatrix();
+     }
+ 
+-
+-    interface RenderAction {
+-        void run(BufferBuilder buffer, float x, float y, float z, float x1, float y1, float z1, float red, float green, float blue, float alpha, Matrix4f matrix);
++    // ------------------------------------------------------------------ 3D: tạm thời không vẽ
++    public static MatrixStack matrixFrom(final double n, final double n2, final double n3) {
++        final MatrixStack matrixStack = new MatrixStack();
++        final Camera camera = Krypton.mc.gameRenderer.getCamera();
++        matrixStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(camera.getPitch()));
++        matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(camera.getYaw() + 180.0f));
++        matrixStack.translate(n - camera.getCameraPos().x, n2 - camera.getCameraPos().y, n3 - camera.getCameraPos().z);
++        return matrixStack;
+     }
+ 
+-    private static void useBuffer(final VertexFormat.DrawMode vertexFormat$DrawMode, final VertexFormat vertexFormat, final Supplier<ShaderProgram> shader, final Consumer<BufferBuilder> consumer) {
+-        final BufferBuilder begin = Tessellator.getInstance().begin(vertexFormat$DrawMode, vertexFormat);
+-        consumer.accept(begin);
+-        setup();
+-        RenderSystem.setShader(shader);
+-        BufferRenderer.drawWithGlobalProgram(begin.end());
+-        cleanup();
++    public static void renderFilledBox(final MatrixStack matrixStack, final float n, final float n2, final float n3, final float n4, final float n5, final float n6, final Color color) {
++        // TODO: vẽ hộp 3D bằng RenderPipeline của 1.21.11
+     }
+ 
+-    static {
+-        RenderUtils.rendering3D = true;
++    public static void renderLine(final MatrixStack matrixStack, final Color color, final Vec3d vec3d, final Vec3d vec3d2) {
++        // TODO: vẽ đường 3D bằng RenderPipeline của 1.21.11
+     }
+-}
+\ No newline at end of file
++}
+diff -ruN a/src/main/java/skid/krypton/utils/TextRenderer.java b/src/main/java/skid/krypton/utils/TextRenderer.java
+--- a/src/main/java/skid/krypton/utils/TextRenderer.java	2026-11-21 16:08:01.784385796 +0000
++++ b/src/main/java/skid/krypton/utils/TextRenderer.java	2026-11-21 16:08:01.787662883 +0000
+@@ -1,49 +1,41 @@
+ package skid.krypton.utils;
+ 
+ import net.minecraft.client.gui.DrawContext;
+-import net.minecraft.client.util.math.MatrixStack;
+-import skid.krypton.font.Fonts;
+-import skid.krypton.module.modules.client.Krypton;
++import org.joml.Matrix3x2fStack;
+ 
++/**
++ * Vẽ chữ bằng font của Minecraft, phóng to 2 lần cho khớp với toạ độ điểm ảnh của giao diện.
++ * (Font .ttf tuỳ chỉnh cũ dùng hệ thống vẽ đã bị Mojang bỏ ở 1.21.11.)
++ */
+ public final class TextRenderer {
++    private static int opaque(final int color) {
++        return (color >>> 24) == 0 ? (color | 0xFF000000) : color;
++    }
++
+     public static void drawString(final CharSequence charSequence, final DrawContext drawContext, final int n, final int n2, final int n3) {
+-        if (Krypton.useCustomFont.getValue()) {
+-            Fonts.FONT.drawString(drawContext.getMatrices(), charSequence, (float) n, (float) n2, n3);
+-        } else {
+-            drawLargeString(charSequence, drawContext, n, n2, n3);
+-        }
++        drawLargeString(charSequence, drawContext, n, n2, n3);
+     }
+ 
+     public static int getWidth(final CharSequence charSequence) {
+-        if (Krypton.useCustomFont.getValue()) {
+-            return Fonts.FONT.getStringWidth(charSequence);
+-        }
+         return skid.krypton.Krypton.mc.textRenderer.getWidth(charSequence.toString()) * 2;
+     }
+ 
+     public static void drawCenteredString(final CharSequence charSequence, final DrawContext drawContext, final int n, final int n2, final int n3) {
+-        if (Krypton.useCustomFont.getValue()) {
+-            Fonts.FONT.drawString(drawContext.getMatrices(), charSequence, (float) (n - Fonts.FONT.getStringWidth(charSequence) / 2), (float) n2, n3);
+-        } else {
+-            drawCenteredMinecraftText(charSequence, drawContext, n, n2, n3);
+-        }
++        drawCenteredMinecraftText(charSequence, drawContext, n, n2, n3);
+     }
+ 
+     public static void drawLargeString(final CharSequence charSequence, final DrawContext drawContext, final int n, final int n2, final int n3) {
+-        final MatrixStack matrices = drawContext.getMatrices();
+-        matrices.push();
+-        matrices.scale(2.0f, 2.0f, 2.0f);
+-        drawContext.drawText(skid.krypton.Krypton.mc.textRenderer, charSequence.toString(), n / 2, n2 / 2, n3, false);
+-        matrices.scale(1.0f, 1.0f, 1.0f);
+-        matrices.pop();
++        final Matrix3x2fStack matrices = drawContext.getMatrices();
++        matrices.pushMatrix();
++        matrices.translate((float) n, (float) n2);
++        matrices.scale(2.0f, 2.0f);
++        drawContext.drawText(skid.krypton.Krypton.mc.textRenderer, charSequence.toString(), 0, 0, opaque(n3), false);
++        matrices.popMatrix();
+     }
+ 
+     public static void drawCenteredMinecraftText(final CharSequence charSequence, final DrawContext drawContext, final int n, final int n2, final int n3) {
+-        final MatrixStack matrices = drawContext.getMatrices();
+-        matrices.push();
+-        matrices.scale(2.0f, 2.0f, 2.0f);
+-        drawContext.drawText(skid.krypton.Krypton.mc.textRenderer, (String) charSequence, n / 2 - skid.krypton.Krypton.mc.textRenderer.getWidth((String) charSequence) / 2, n2 / 2, n3, false);
+-        matrices.scale(1.0f, 1.0f, 1.0f);
+-        matrices.pop();
++        final String text = charSequence.toString();
++        final int width = skid.krypton.Krypton.mc.textRenderer.getWidth(text) * 2;
++        drawLargeString(text, drawContext, n - width / 2, n2, n3);
+     }
+ }
+diff -ruN a/src/main/java/skid/krypton/utils/meteorrejects/Ore.java b/src/main/java/skid/krypton/utils/meteorrejects/Ore.java
+--- a/src/main/java/skid/krypton/utils/meteorrejects/Ore.java	2026-11-21 16:08:01.784447406 +0000
++++ b/src/main/java/skid/krypton/utils/meteorrejects/Ore.java	2026-11-21 16:08:01.787716966 +0000
+@@ -43,8 +43,8 @@
+ 
+     public static Map<RegistryKey<Biome>, List<Ore>> register() {
+         RegistryWrapper.WrapperLookup wrapperLookup = BuiltinRegistries.createWrapperLookup();
+-        RegistryWrapper.Impl<PlacedFeature> impl = wrapperLookup.getWrapperOrThrow(RegistryKeys.PLACED_FEATURE);
+-        var l = wrapperLookup.getWrapperOrThrow(RegistryKeys.WORLD_PRESET).getOrThrow(WorldPresets.DEFAULT).value().createDimensionsRegistryHolder().dimensions().get(DimensionOptions.NETHER).chunkGenerator().getBiomeSource().getBiomes().stream().toList();
++        RegistryWrapper.Impl<PlacedFeature> impl = wrapperLookup.getOrThrow(RegistryKeys.PLACED_FEATURE);
++        var l = wrapperLookup.getOrThrow(RegistryKeys.WORLD_PRESET).getOrThrow(WorldPresets.DEFAULT).value().createDimensionsRegistryHolder().dimensions().get(DimensionOptions.NETHER).chunkGenerator().getBiomeSource().getBiomes().stream().toList();
+         var l2 = PlacedFeatureIndexer.collectIndexedFeatures(l, registryEntry -> registryEntry.value().getGenerationSettings().getFeatures(), true);
+         Map<PlacedFeature, Ore> ores = new HashMap<>();
+         var registry = OrePlacedFeatures.ORE_DEBRIS_SMALL;
+diff -ruN a/src/main/resources/client.mixins.json b/src/main/resources/client.mixins.json
+--- a/src/main/resources/client.mixins.json	2026-11-21 16:08:01.784475317 +0000
++++ b/src/main/resources/client.mixins.json	2026-11-21 16:08:01.787741922 +0000
+@@ -13,7 +13,6 @@
+     "ClientPlayerInteractionManagerAccessor",
+     "ClientPlayerInteractionManagerMixin",
+     "FrustumAccessor",
+-    "GameRendererMixin",
+     "InGameHudMixin",
+     "KeyBindingAccessor",
+     "KeyBindingMixin",
+@@ -21,7 +20,6 @@
+     "MinecraftClientAccessor",
+     "MinecraftClientMixin",
+     "ScreenMixin",
+-    "EntityRenderDispatcherMixin",
+     "CountPlacementModifierAccessor",
+     "HeightRangePlacementModifierAccessor",
+     "RarityFilterPlacementModifierAccessor",
+@@ -38,4 +36,4 @@
+     "defaultRequire": 1
+   },
+   "refmap": "krypton-refmap.json"
+-}
+\ No newline at end of file
++}
