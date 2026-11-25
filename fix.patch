@@ -1,6 +1,6 @@
 diff -ruN a/src/main/java/skid/krypton/Main.java b/src/main/java/skid/krypton/Main.java
---- a/src/main/java/skid/krypton/Main.java	2026-11-25 08:23:19.498944064 +0000
-+++ b/src/main/java/skid/krypton/Main.java	2026-11-25 08:23:19.523672090 +0000
+--- a/src/main/java/skid/krypton/Main.java	2026-11-25 08:40:56.108672712 +0000
++++ b/src/main/java/skid/krypton/Main.java	2026-11-25 08:40:56.128732807 +0000
 @@ -4,6 +4,23 @@
  
  public final class Main implements ModInitializer {
@@ -27,7 +27,7 @@ diff -ruN a/src/main/java/skid/krypton/Main.java b/src/main/java/skid/krypton/Ma
  }
 \ No newline at end of file
 diff -ruN a/src/main/java/skid/krypton/font/Fonts.java b/src/main/java/skid/krypton/font/Fonts.java
---- a/src/main/java/skid/krypton/font/Fonts.java	2026-11-25 08:23:19.501743781 +0000
+--- a/src/main/java/skid/krypton/font/Fonts.java	2026-11-25 08:40:56.110335328 +0000
 +++ b/src/main/java/skid/krypton/font/Fonts.java	1970-01-01 00:00:00.000000000 +0000
 @@ -1,5 +0,0 @@
 -package skid.krypton.font;
@@ -37,7 +37,7 @@ diff -ruN a/src/main/java/skid/krypton/font/Fonts.java b/src/main/java/skid/kryp
 -}
 \ No newline at end of file
 diff -ruN a/src/main/java/skid/krypton/font/GlyphPage.java b/src/main/java/skid/krypton/font/GlyphPage.java
---- a/src/main/java/skid/krypton/font/GlyphPage.java	2026-11-25 08:23:19.501839543 +0000
+--- a/src/main/java/skid/krypton/font/GlyphPage.java	2026-11-25 08:40:56.110408347 +0000
 +++ b/src/main/java/skid/krypton/font/GlyphPage.java	1970-01-01 00:00:00.000000000 +0000
 @@ -1,195 +0,0 @@
 -package skid.krypton.font;
@@ -237,7 +237,7 @@ diff -ruN a/src/main/java/skid/krypton/font/GlyphPage.java b/src/main/java/skid/
 -}
 \ No newline at end of file
 diff -ruN a/src/main/java/skid/krypton/font/GlyphPageFontRenderer.java b/src/main/java/skid/krypton/font/GlyphPageFontRenderer.java
---- a/src/main/java/skid/krypton/font/GlyphPageFontRenderer.java	2026-11-25 08:23:19.501913648 +0000
+--- a/src/main/java/skid/krypton/font/GlyphPageFontRenderer.java	2026-11-25 08:40:56.110461359 +0000
 +++ b/src/main/java/skid/krypton/font/GlyphPageFontRenderer.java	1970-01-01 00:00:00.000000000 +0000
 @@ -1,422 +0,0 @@
 -package skid.krypton.font;
@@ -664,8 +664,8 @@ diff -ruN a/src/main/java/skid/krypton/font/GlyphPageFontRenderer.java b/src/mai
 -}
 \ No newline at end of file
 diff -ruN a/src/main/java/skid/krypton/gui/ClickGUI.java b/src/main/java/skid/krypton/gui/ClickGUI.java
---- a/src/main/java/skid/krypton/gui/ClickGUI.java	2026-11-25 08:23:19.502239110 +0000
-+++ b/src/main/java/skid/krypton/gui/ClickGUI.java	2026-11-25 08:23:19.514870862 +0000
+--- a/src/main/java/skid/krypton/gui/ClickGUI.java	2026-11-25 08:40:56.111827714 +0000
++++ b/src/main/java/skid/krypton/gui/ClickGUI.java	2026-11-25 08:40:56.121071505 +0000
 @@ -87,6 +87,7 @@
              if (Krypton.mc.currentScreen instanceof ClickGUI) {
                  drawContext.fill(0, 0, Krypton.mc.getWindow().getWidth(), Krypton.mc.getWindow().getHeight(), this.currentColor.getRGB());
@@ -745,7 +745,7 @@ diff -ruN a/src/main/java/skid/krypton/gui/ClickGUI.java b/src/main/java/skid/kr
      private void renderTooltip(final DrawContext drawContext, final CharSequence charSequence, int n, final int n2) {
 diff -ruN a/src/main/java/skid/krypton/gui/components/BlockBox.java b/src/main/java/skid/krypton/gui/components/BlockBox.java
 --- a/src/main/java/skid/krypton/gui/components/BlockBox.java	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/java/skid/krypton/gui/components/BlockBox.java	2026-11-25 08:23:19.515034349 +0000
++++ b/src/main/java/skid/krypton/gui/components/BlockBox.java	2026-11-25 08:40:56.121407364 +0000
 @@ -0,0 +1,77 @@
 +package skid.krypton.gui.components;
 +
@@ -826,7 +826,7 @@ diff -ruN a/src/main/java/skid/krypton/gui/components/BlockBox.java b/src/main/j
 +}
 diff -ruN a/src/main/java/skid/krypton/gui/components/BlockPicker.java b/src/main/java/skid/krypton/gui/components/BlockPicker.java
 --- a/src/main/java/skid/krypton/gui/components/BlockPicker.java	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/java/skid/krypton/gui/components/BlockPicker.java	2026-11-25 08:23:19.515465784 +0000
++++ b/src/main/java/skid/krypton/gui/components/BlockPicker.java	2026-11-25 08:40:56.122155280 +0000
 @@ -0,0 +1,393 @@
 +package skid.krypton.gui.components;
 +
@@ -1223,7 +1223,7 @@ diff -ruN a/src/main/java/skid/krypton/gui/components/BlockPicker.java b/src/mai
 +}
 diff -ruN a/src/main/java/skid/krypton/gui/components/ColorPicker.java b/src/main/java/skid/krypton/gui/components/ColorPicker.java
 --- a/src/main/java/skid/krypton/gui/components/ColorPicker.java	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/java/skid/krypton/gui/components/ColorPicker.java	2026-11-25 08:23:19.515484276 +0000
++++ b/src/main/java/skid/krypton/gui/components/ColorPicker.java	2026-11-25 08:40:56.122273972 +0000
 @@ -0,0 +1,573 @@
 +package skid.krypton.gui.components;
 +
@@ -1799,8 +1799,8 @@ diff -ruN a/src/main/java/skid/krypton/gui/components/ColorPicker.java b/src/mai
 +    }
 +}
 diff -ruN a/src/main/java/skid/krypton/gui/components/ItemFilter.java b/src/main/java/skid/krypton/gui/components/ItemFilter.java
---- a/src/main/java/skid/krypton/gui/components/ItemFilter.java	2026-11-25 08:23:19.502681522 +0000
-+++ b/src/main/java/skid/krypton/gui/components/ItemFilter.java	2026-11-25 08:23:19.515540252 +0000
+--- a/src/main/java/skid/krypton/gui/components/ItemFilter.java	2026-11-25 08:40:56.112409606 +0000
++++ b/src/main/java/skid/krypton/gui/components/ItemFilter.java	2026-11-25 08:40:56.122344827 +0000
 @@ -57,6 +57,7 @@
      }
  
@@ -1857,8 +1857,8 @@ diff -ruN a/src/main/java/skid/krypton/gui/components/ItemFilter.java b/src/main
  
      public boolean charTyped(final char c, final int n) {
 diff -ruN a/src/main/java/skid/krypton/gui/components/Keybind.java b/src/main/java/skid/krypton/gui/components/Keybind.java
---- a/src/main/java/skid/krypton/gui/components/Keybind.java	2026-11-25 08:23:19.502765896 +0000
-+++ b/src/main/java/skid/krypton/gui/components/Keybind.java	2026-11-25 08:23:19.515186095 +0000
+--- a/src/main/java/skid/krypton/gui/components/Keybind.java	2026-11-25 08:40:56.112456818 +0000
++++ b/src/main/java/skid/krypton/gui/components/Keybind.java	2026-11-25 08:40:56.121610860 +0000
 @@ -37,7 +37,7 @@
      @Override
      public void render(final DrawContext drawContext, final int n, final int n2, final float n3) {
@@ -1869,8 +1869,8 @@ diff -ruN a/src/main/java/skid/krypton/gui/components/Keybind.java b/src/main/ja
          if (!this.parent.parent.dragging) {
              drawContext.fill(this.parentX(), this.parentY() + this.parentOffset() + this.offset, this.parentX() + this.parentWidth(), this.parentY() + this.parentOffset() + this.offset + this.parentHeight(), new Color(Keybind.HOVER_COLOR.getRed(), Keybind.HOVER_COLOR.getGreen(), Keybind.HOVER_COLOR.getBlue(), (int) (Keybind.HOVER_COLOR.getAlpha() * this.hoverAnimation)).getRGB());
 diff -ruN a/src/main/java/skid/krypton/gui/components/ModuleButton.java b/src/main/java/skid/krypton/gui/components/ModuleButton.java
---- a/src/main/java/skid/krypton/gui/components/ModuleButton.java	2026-11-25 08:23:19.502961623 +0000
-+++ b/src/main/java/skid/krypton/gui/components/ModuleButton.java	2026-11-25 08:23:19.515202735 +0000
+--- a/src/main/java/skid/krypton/gui/components/ModuleButton.java	2026-11-25 08:40:56.112545495 +0000
++++ b/src/main/java/skid/krypton/gui/components/ModuleButton.java	2026-11-25 08:40:56.121710827 +0000
 @@ -67,6 +67,8 @@
                  this.settings.add(new Slider(this, (Setting) next, this.settingOffset));
              } else if (next instanceof ItemSetting) {
@@ -1898,7 +1898,7 @@ diff -ruN a/src/main/java/skid/krypton/gui/components/ModuleButton.java b/src/ma
      private void renderSliderControls(final DrawContext drawContext) {
 diff -ruN a/src/main/java/skid/krypton/gui/components/PickerUi.java b/src/main/java/skid/krypton/gui/components/PickerUi.java
 --- a/src/main/java/skid/krypton/gui/components/PickerUi.java	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/java/skid/krypton/gui/components/PickerUi.java	2026-11-25 08:23:19.515277542 +0000
++++ b/src/main/java/skid/krypton/gui/components/PickerUi.java	2026-11-25 08:40:56.121842243 +0000
 @@ -0,0 +1,127 @@
 +package skid.krypton.gui.components;
 +
@@ -2028,8 +2028,8 @@ diff -ruN a/src/main/java/skid/krypton/gui/components/PickerUi.java b/src/main/j
 +    }
 +}
 diff -ruN a/src/main/java/skid/krypton/gui/components/Slider.java b/src/main/java/skid/krypton/gui/components/Slider.java
---- a/src/main/java/skid/krypton/gui/components/Slider.java	2026-11-25 08:23:19.503188857 +0000
-+++ b/src/main/java/skid/krypton/gui/components/Slider.java	2026-11-25 08:23:19.515606032 +0000
+--- a/src/main/java/skid/krypton/gui/components/Slider.java	2026-11-25 08:40:56.112679570 +0000
++++ b/src/main/java/skid/krypton/gui/components/Slider.java	2026-11-25 08:40:56.122395433 +0000
 @@ -45,7 +45,7 @@
      @Override
      public void render(final DrawContext drawContext, final int n, final int n2, final float n3) {
@@ -2040,8 +2040,8 @@ diff -ruN a/src/main/java/skid/krypton/gui/components/Slider.java b/src/main/jav
          this.offsetMinX = (this.setting.getCurrentMin() - this.setting.getMinValue()) / (this.setting.getMaxValue() - this.setting.getMinValue()) * (this.parentWidth() - 10) + 5.0;
          this.offsetMaxX = (this.setting.getCurrentMax() - this.setting.getMinValue()) / (this.setting.getMaxValue() - this.setting.getMinValue()) * (this.parentWidth() - 10) + 5.0;
 diff -ruN a/src/main/java/skid/krypton/gui/components/StringBox.java b/src/main/java/skid/krypton/gui/components/StringBox.java
---- a/src/main/java/skid/krypton/gui/components/StringBox.java	2026-11-25 08:23:19.503285758 +0000
-+++ b/src/main/java/skid/krypton/gui/components/StringBox.java	2026-11-25 08:23:19.515395273 +0000
+--- a/src/main/java/skid/krypton/gui/components/StringBox.java	2026-11-25 08:40:56.112731103 +0000
++++ b/src/main/java/skid/krypton/gui/components/StringBox.java	2026-11-25 08:40:56.121958272 +0000
 @@ -38,6 +38,7 @@
      }
  
@@ -2106,8 +2106,8 @@ diff -ruN a/src/main/java/skid/krypton/gui/components/StringBox.java b/src/main/
          } else {
              n = GLFW.glfwGetKey(MinecraftClient.getInstance().getWindow().getHandle(), 341);
 diff -ruN a/src/main/java/skid/krypton/manager/ConfigManager.java b/src/main/java/skid/krypton/manager/ConfigManager.java
---- a/src/main/java/skid/krypton/manager/ConfigManager.java	2026-11-25 08:23:19.503794341 +0000
-+++ b/src/main/java/skid/krypton/manager/ConfigManager.java	2026-11-25 08:23:19.515984470 +0000
+--- a/src/main/java/skid/krypton/manager/ConfigManager.java	2026-11-25 08:40:56.113143454 +0000
++++ b/src/main/java/skid/krypton/manager/ConfigManager.java	2026-11-25 08:40:56.122695984 +0000
 @@ -12,34 +12,77 @@
  public final class ConfigManager {
      private JsonObject jsonObject;
@@ -2235,8 +2235,8 @@ diff -ruN a/src/main/java/skid/krypton/manager/ConfigManager.java b/src/main/jav
          } catch (final Exception ex) {
              System.err.println("Error saving setting " + setting.getName() + ": " + ex.getMessage());
 diff -ruN a/src/main/java/skid/krypton/mixin/CameraMixin.java b/src/main/java/skid/krypton/mixin/CameraMixin.java
---- a/src/main/java/skid/krypton/mixin/CameraMixin.java	2026-11-25 08:23:19.503961320 +0000
-+++ b/src/main/java/skid/krypton/mixin/CameraMixin.java	2026-11-25 08:23:19.516251384 +0000
+--- a/src/main/java/skid/krypton/mixin/CameraMixin.java	2026-11-25 08:40:56.113285389 +0000
++++ b/src/main/java/skid/krypton/mixin/CameraMixin.java	2026-11-25 08:40:56.122857790 +0000
 @@ -2,13 +2,14 @@
  
  import net.minecraft.client.render.Camera;
@@ -2277,7 +2277,7 @@ diff -ruN a/src/main/java/skid/krypton/mixin/CameraMixin.java b/src/main/java/sk
  
      @ModifyArgs(method = {"update"}, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/Camera;setPos(DDD)V"))
 diff -ruN a/src/main/java/skid/krypton/mixin/EntityRenderDispatcherMixin.java b/src/main/java/skid/krypton/mixin/EntityRenderDispatcherMixin.java
---- a/src/main/java/skid/krypton/mixin/EntityRenderDispatcherMixin.java	2026-11-25 08:23:19.504381986 +0000
+--- a/src/main/java/skid/krypton/mixin/EntityRenderDispatcherMixin.java	2026-11-25 08:40:56.113675223 +0000
 +++ b/src/main/java/skid/krypton/mixin/EntityRenderDispatcherMixin.java	1970-01-01 00:00:00.000000000 +0000
 @@ -1,19 +0,0 @@
 -package skid.krypton.mixin;
@@ -2301,7 +2301,7 @@ diff -ruN a/src/main/java/skid/krypton/mixin/EntityRenderDispatcherMixin.java b/
 -}
 \ No newline at end of file
 diff -ruN a/src/main/java/skid/krypton/mixin/GameRendererMixin.java b/src/main/java/skid/krypton/mixin/GameRendererMixin.java
---- a/src/main/java/skid/krypton/mixin/GameRendererMixin.java	2026-11-25 08:23:19.504468740 +0000
+--- a/src/main/java/skid/krypton/mixin/GameRendererMixin.java	2026-11-25 08:40:56.113782787 +0000
 +++ b/src/main/java/skid/krypton/mixin/GameRendererMixin.java	1970-01-01 00:00:00.000000000 +0000
 @@ -1,39 +0,0 @@
 -package skid.krypton.mixin;
@@ -2345,8 +2345,8 @@ diff -ruN a/src/main/java/skid/krypton/mixin/GameRendererMixin.java b/src/main/j
 -}
 \ No newline at end of file
 diff -ruN a/src/main/java/skid/krypton/mixin/InGameHudMixin.java b/src/main/java/skid/krypton/mixin/InGameHudMixin.java
---- a/src/main/java/skid/krypton/mixin/InGameHudMixin.java	2026-11-25 08:23:19.504717426 +0000
-+++ b/src/main/java/skid/krypton/mixin/InGameHudMixin.java	2026-11-25 08:23:19.516332031 +0000
+--- a/src/main/java/skid/krypton/mixin/InGameHudMixin.java	2026-11-25 08:40:56.113945877 +0000
++++ b/src/main/java/skid/krypton/mixin/InGameHudMixin.java	2026-11-25 08:40:56.122946323 +0000
 @@ -14,6 +14,7 @@
  public class InGameHudMixin {
      @Inject(method = {"render"}, at = {@At("HEAD")})
@@ -2358,8 +2358,8 @@ diff -ruN a/src/main/java/skid/krypton/mixin/InGameHudMixin.java b/src/main/java
  }
 \ No newline at end of file
 diff -ruN a/src/main/java/skid/krypton/mixin/KeyBindingMixin.java b/src/main/java/skid/krypton/mixin/KeyBindingMixin.java
---- a/src/main/java/skid/krypton/mixin/KeyBindingMixin.java	2026-11-25 08:23:19.504801269 +0000
-+++ b/src/main/java/skid/krypton/mixin/KeyBindingMixin.java	2026-11-25 08:23:19.517107204 +0000
+--- a/src/main/java/skid/krypton/mixin/KeyBindingMixin.java	2026-11-25 08:40:56.114017577 +0000
++++ b/src/main/java/skid/krypton/mixin/KeyBindingMixin.java	2026-11-25 08:40:56.123433644 +0000
 @@ -16,7 +16,7 @@
  
      @Override
@@ -2370,8 +2370,8 @@ diff -ruN a/src/main/java/skid/krypton/mixin/KeyBindingMixin.java b/src/main/jav
  
      @Override
 diff -ruN a/src/main/java/skid/krypton/mixin/KeyboardMixin.java b/src/main/java/skid/krypton/mixin/KeyboardMixin.java
---- a/src/main/java/skid/krypton/mixin/KeyboardMixin.java	2026-11-25 08:23:19.504846522 +0000
-+++ b/src/main/java/skid/krypton/mixin/KeyboardMixin.java	2026-11-25 08:23:19.517191550 +0000
+--- a/src/main/java/skid/krypton/mixin/KeyboardMixin.java	2026-11-25 08:40:56.114057857 +0000
++++ b/src/main/java/skid/krypton/mixin/KeyboardMixin.java	2026-11-25 08:40:56.123550589 +0000
 @@ -12,7 +12,8 @@
  @Mixin({Keyboard.class})
  public class KeyboardMixin {
@@ -2382,9 +2382,36 @@ diff -ruN a/src/main/java/skid/krypton/mixin/KeyboardMixin.java b/src/main/java/
          if (key == GLFW.GLFW_KEY_UNKNOWN) return;
          final KeyEvent event = new KeyEvent(key, window, action);
          EventManager.b(event);
+diff -ruN a/src/main/java/skid/krypton/mixin/LivingEntityMixin.java b/src/main/java/skid/krypton/mixin/LivingEntityMixin.java
+--- a/src/main/java/skid/krypton/mixin/LivingEntityMixin.java	1970-01-01 00:00:00.000000000 +0000
++++ b/src/main/java/skid/krypton/mixin/LivingEntityMixin.java	2026-11-25 08:40:56.123911374 +0000
+@@ -0,0 +1,23 @@
++package skid.krypton.mixin;
++
++import net.minecraft.entity.LivingEntity;
++import org.spongepowered.asm.mixin.Mixin;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++import skid.krypton.Krypton;
++import skid.krypton.module.modules.render.SwingSpeed;
++
++@Mixin({LivingEntity.class})
++public class LivingEntityMixin {
++    @Inject(method = {"getHandSwingDuration"}, at = {@At("RETURN")}, cancellable = true, require = 0)
++    private void onGetHandSwingDuration(final CallbackInfoReturnable<Integer> cir) {
++        if (Krypton.INSTANCE == null || Krypton.mc == null || LivingEntity.class.cast(this) != Krypton.mc.player) {
++            return;
++        }
++        final SwingSpeed swingSpeed = (SwingSpeed) Krypton.INSTANCE.MODULE_MANAGER.getModuleByClass(SwingSpeed.class);
++        if (swingSpeed != null && swingSpeed.isEnabled()) {
++            cir.setReturnValue(swingSpeed.getSwingDuration(cir.getReturnValueI()));
++        }
++    }
++}
 diff -ruN a/src/main/java/skid/krypton/mixin/MouseMixin.java b/src/main/java/skid/krypton/mixin/MouseMixin.java
---- a/src/main/java/skid/krypton/mixin/MouseMixin.java	2026-11-25 08:23:19.505038424 +0000
-+++ b/src/main/java/skid/krypton/mixin/MouseMixin.java	2026-11-25 08:23:19.517236175 +0000
+--- a/src/main/java/skid/krypton/mixin/MouseMixin.java	2026-11-25 08:40:56.114202569 +0000
++++ b/src/main/java/skid/krypton/mixin/MouseMixin.java	2026-11-25 08:40:56.123614460 +0000
 @@ -13,7 +13,8 @@
  @Mixin({Mouse.class})
  public abstract class MouseMixin {
@@ -2396,8 +2423,8 @@ diff -ruN a/src/main/java/skid/krypton/mixin/MouseMixin.java b/src/main/java/ski
          final MouseButtonEvent event = new MouseButtonEvent(button, window, action);
          EventManager.b(event);
 diff -ruN a/src/main/java/skid/krypton/mixin/WorldChunkMixin.java b/src/main/java/skid/krypton/mixin/WorldChunkMixin.java
---- a/src/main/java/skid/krypton/mixin/WorldChunkMixin.java	2026-11-25 08:23:19.505213589 +0000
-+++ b/src/main/java/skid/krypton/mixin/WorldChunkMixin.java	2026-11-25 08:23:19.517415165 +0000
+--- a/src/main/java/skid/krypton/mixin/WorldChunkMixin.java	2026-11-25 08:40:56.114389383 +0000
++++ b/src/main/java/skid/krypton/mixin/WorldChunkMixin.java	2026-11-25 08:40:56.123769057 +0000
 @@ -20,8 +20,8 @@
      World world;
  
@@ -2410,18 +2437,19 @@ diff -ruN a/src/main/java/skid/krypton/mixin/WorldChunkMixin.java b/src/main/jav
          }
      }
 diff -ruN a/src/main/java/skid/krypton/module/ModuleManager.java b/src/main/java/skid/krypton/module/ModuleManager.java
---- a/src/main/java/skid/krypton/module/ModuleManager.java	2026-11-25 08:23:19.505396777 +0000
-+++ b/src/main/java/skid/krypton/module/ModuleManager.java	2026-11-25 08:23:19.517636558 +0000
-@@ -10,6 +10,8 @@
+--- a/src/main/java/skid/krypton/module/ModuleManager.java	2026-11-25 08:40:56.114549011 +0000
++++ b/src/main/java/skid/krypton/module/ModuleManager.java	2026-11-25 08:40:56.123936095 +0000
+@@ -10,6 +10,9 @@
  import skid.krypton.module.modules.misc.*;
  import skid.krypton.module.modules.render.HUD;
  import skid.krypton.module.modules.render.PlayerESP;
 +import skid.krypton.module.modules.render.SpawnerNotify;
 +import skid.krypton.module.modules.render.BlockESP;
++import skid.krypton.module.modules.render.SwingSpeed;
  import skid.krypton.module.modules.render.StorageESP;
  import skid.krypton.module.modules.render.TargetHUD;
  import skid.krypton.module.setting.BindSetting;
-@@ -33,6 +35,7 @@
+@@ -33,6 +36,7 @@
          this.a(new MaceSwap());
          this.a(new Hitbox());
          this.a(new StaticHitboxes());
@@ -2429,7 +2457,7 @@ diff -ruN a/src/main/java/skid/krypton/module/ModuleManager.java b/src/main/java
          this.a(new AutoTotem());
          this.a(new HoverTotem());
          this.a(new AutoInventoryTotem());
-@@ -49,10 +52,16 @@
+@@ -49,10 +53,16 @@
          this.a(new CordSnapper());
          this.a(new KeyPearl());
          this.a(new NameProtect());
@@ -2446,19 +2474,20 @@ diff -ruN a/src/main/java/skid/krypton/module/ModuleManager.java b/src/main/java
          this.a(new BoneDropper());
          this.a(new AutoSell());
          this.a(new ShulkerDropper());
-@@ -62,7 +71,9 @@
+@@ -62,7 +72,10 @@
          this.a(new HUD());
          this.a(new PlayerESP());
          this.a(new StorageESP());
 +        this.a(new BlockESP());
++        this.a(new SwingSpeed());
          this.a(new TargetHUD());
 +        this.a(new SpawnerNotify());
          this.a(new Krypton());
          this.a(new SelfDestruct());
      }
 diff -ruN a/src/main/java/skid/krypton/module/modules/combat/AnchorMacro.java b/src/main/java/skid/krypton/module/modules/combat/AnchorMacro.java
---- a/src/main/java/skid/krypton/module/modules/combat/AnchorMacro.java	2026-11-25 08:23:19.505909809 +0000
-+++ b/src/main/java/skid/krypton/module/modules/combat/AnchorMacro.java	2026-11-25 08:23:19.518342550 +0000
+--- a/src/main/java/skid/krypton/module/modules/combat/AnchorMacro.java	2026-11-25 08:40:56.114954774 +0000
++++ b/src/main/java/skid/krypton/module/modules/combat/AnchorMacro.java	2026-11-25 08:40:56.124344633 +0000
 @@ -100,15 +100,15 @@
  
      private void explodeAnchor(final BlockHitResult blockHitResult) {
@@ -2479,8 +2508,8 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/combat/AnchorMacro.java b/
                  ++this.explodeDelayCounter;
                  return;
 diff -ruN a/src/main/java/skid/krypton/module/modules/combat/AutoInventoryTotem.java b/src/main/java/skid/krypton/module/modules/combat/AutoInventoryTotem.java
---- a/src/main/java/skid/krypton/module/modules/combat/AutoInventoryTotem.java	2026-11-25 08:23:19.506113876 +0000
-+++ b/src/main/java/skid/krypton/module/modules/combat/AutoInventoryTotem.java	2026-11-25 08:23:19.518566552 +0000
+--- a/src/main/java/skid/krypton/module/modules/combat/AutoInventoryTotem.java	2026-11-25 08:40:56.115067368 +0000
++++ b/src/main/java/skid/krypton/module/modules/combat/AutoInventoryTotem.java	2026-11-25 08:40:56.124571719 +0000
 @@ -66,10 +66,10 @@
          }
          final PlayerInventory getInventory = this.mc.player.getInventory();
@@ -2526,8 +2555,8 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/combat/AutoInventoryTotem.
                  count += stack.getCount();
              }
 diff -ruN a/src/main/java/skid/krypton/module/modules/combat/ElytraSwap.java b/src/main/java/skid/krypton/module/modules/combat/ElytraSwap.java
---- a/src/main/java/skid/krypton/module/modules/combat/ElytraSwap.java	2026-11-25 08:23:19.506249353 +0000
-+++ b/src/main/java/skid/krypton/module/modules/combat/ElytraSwap.java	2026-11-25 08:23:19.518887606 +0000
+--- a/src/main/java/skid/krypton/module/modules/combat/ElytraSwap.java	2026-11-25 08:40:56.115220144 +0000
++++ b/src/main/java/skid/krypton/module/modules/combat/ElytraSwap.java	2026-11-25 08:40:56.124684473 +0000
 @@ -1,7 +1,6 @@
  package skid.krypton.module.modules.combat;
  
@@ -2557,8 +2586,8 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/combat/ElytraSwap.java b/s
                  predicate = (item2 -> item2.equals(Items.ELYTRA));
              }
 diff -ruN a/src/main/java/skid/krypton/module/modules/combat/HoverTotem.java b/src/main/java/skid/krypton/module/modules/combat/HoverTotem.java
---- a/src/main/java/skid/krypton/module/modules/combat/HoverTotem.java	2026-11-25 08:23:19.506339166 +0000
-+++ b/src/main/java/skid/krypton/module/modules/combat/HoverTotem.java	2026-11-25 08:23:19.519044956 +0000
+--- a/src/main/java/skid/krypton/module/modules/combat/HoverTotem.java	2026-11-25 08:40:56.115292898 +0000
++++ b/src/main/java/skid/krypton/module/modules/combat/HoverTotem.java	2026-11-25 08:40:56.124806885 +0000
 @@ -47,7 +47,7 @@
              return;
          }
@@ -2569,8 +2598,8 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/combat/HoverTotem.java b/s
          if (focusedSlot.getStack().getItem() != Items.TOTEM_OF_UNDYING) {
              return;
 diff -ruN a/src/main/java/skid/krypton/module/modules/combat/MaceSwap.java b/src/main/java/skid/krypton/module/modules/combat/MaceSwap.java
---- a/src/main/java/skid/krypton/module/modules/combat/MaceSwap.java	2026-11-25 08:23:19.506387846 +0000
-+++ b/src/main/java/skid/krypton/module/modules/combat/MaceSwap.java	2026-11-25 08:23:19.519144475 +0000
+--- a/src/main/java/skid/krypton/module/modules/combat/MaceSwap.java	2026-11-25 08:40:56.115329870 +0000
++++ b/src/main/java/skid/krypton/module/modules/combat/MaceSwap.java	2026-11-25 08:40:56.124888096 +0000
 @@ -4,7 +4,6 @@
  import net.minecraft.item.AxeItem;
  import net.minecraft.item.Item;
@@ -2602,7 +2631,7 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/combat/MaceSwap.java b/src
      private void performSwitchBack() {
 diff -ruN a/src/main/java/skid/krypton/module/modules/combat/RealHitbox.java b/src/main/java/skid/krypton/module/modules/combat/RealHitbox.java
 --- a/src/main/java/skid/krypton/module/modules/combat/RealHitbox.java	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/java/skid/krypton/module/modules/combat/RealHitbox.java	2026-11-25 08:23:19.519217010 +0000
++++ b/src/main/java/skid/krypton/module/modules/combat/RealHitbox.java	2026-11-25 08:40:56.124931688 +0000
 @@ -0,0 +1,22 @@
 +package skid.krypton.module.modules.combat;
 +
@@ -2628,7 +2657,7 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/combat/RealHitbox.java b/s
 +}
 diff -ruN a/src/main/java/skid/krypton/module/modules/donut/ChunkFinder.java b/src/main/java/skid/krypton/module/modules/donut/ChunkFinder.java
 --- a/src/main/java/skid/krypton/module/modules/donut/ChunkFinder.java	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/java/skid/krypton/module/modules/donut/ChunkFinder.java	2026-11-25 08:23:19.520068733 +0000
++++ b/src/main/java/skid/krypton/module/modules/donut/ChunkFinder.java	2026-11-25 08:40:56.125602999 +0000
 @@ -0,0 +1,22 @@
 +package skid.krypton.module.modules.donut;
 +
@@ -2654,7 +2683,7 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/donut/ChunkFinder.java b/s
 +}
 diff -ruN a/src/main/java/skid/krypton/module/modules/donut/LightFinder.java b/src/main/java/skid/krypton/module/modules/donut/LightFinder.java
 --- a/src/main/java/skid/krypton/module/modules/donut/LightFinder.java	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/java/skid/krypton/module/modules/donut/LightFinder.java	2026-11-25 08:23:19.520118608 +0000
++++ b/src/main/java/skid/krypton/module/modules/donut/LightFinder.java	2026-11-25 08:40:56.125648931 +0000
 @@ -0,0 +1,381 @@
 +package skid.krypton.module.modules.donut;
 +
@@ -3038,8 +3067,8 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/donut/LightFinder.java b/s
 +    }
 +}
 diff -ruN a/src/main/java/skid/krypton/module/modules/donut/NetheriteFinder.java b/src/main/java/skid/krypton/module/modules/donut/NetheriteFinder.java
---- a/src/main/java/skid/krypton/module/modules/donut/NetheriteFinder.java	2026-11-25 08:23:19.507068778 +0000
-+++ b/src/main/java/skid/krypton/module/modules/donut/NetheriteFinder.java	2026-11-25 08:23:19.520175461 +0000
+--- a/src/main/java/skid/krypton/module/modules/donut/NetheriteFinder.java	2026-11-25 08:40:56.115826199 +0000
++++ b/src/main/java/skid/krypton/module/modules/donut/NetheriteFinder.java	2026-11-25 08:40:56.125702811 +0000
 @@ -63,11 +63,9 @@
              if (var3 != null) {
                  MatrixStack var4 = var1.matrixStack;
@@ -3054,8 +3083,8 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/donut/NetheriteFinder.java
              }
  
 diff -ruN a/src/main/java/skid/krypton/module/modules/donut/RtpBaseFinder.java b/src/main/java/skid/krypton/module/modules/donut/RtpBaseFinder.java
---- a/src/main/java/skid/krypton/module/modules/donut/RtpBaseFinder.java	2026-11-25 08:23:19.507131975 +0000
-+++ b/src/main/java/skid/krypton/module/modules/donut/RtpBaseFinder.java	2026-11-25 08:23:19.519867443 +0000
+--- a/src/main/java/skid/krypton/module/modules/donut/RtpBaseFinder.java	2026-11-25 08:40:56.115923310 +0000
++++ b/src/main/java/skid/krypton/module/modules/donut/RtpBaseFinder.java	2026-11-25 08:40:56.125451654 +0000
 @@ -106,7 +106,7 @@
                  }
                  this.totemBuyCounter = 0;
@@ -3150,8 +3179,8 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/donut/RtpBaseFinder.java b
      }
  
 diff -ruN a/src/main/java/skid/krypton/module/modules/donut/TunnelBaseFinder.java b/src/main/java/skid/krypton/module/modules/donut/TunnelBaseFinder.java
---- a/src/main/java/skid/krypton/module/modules/donut/TunnelBaseFinder.java	2026-11-25 08:23:19.507250547 +0000
-+++ b/src/main/java/skid/krypton/module/modules/donut/TunnelBaseFinder.java	2026-11-25 08:23:19.519966077 +0000
+--- a/src/main/java/skid/krypton/module/modules/donut/TunnelBaseFinder.java	2026-11-25 08:40:56.116062523 +0000
++++ b/src/main/java/skid/krypton/module/modules/donut/TunnelBaseFinder.java	2026-11-25 08:40:56.125505815 +0000
 @@ -120,7 +120,7 @@
                  }
                  this.totemBuyCounter = 0;
@@ -3233,8 +3262,8 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/donut/TunnelBaseFinder.jav
      }
  
 diff -ruN a/src/main/java/skid/krypton/module/modules/misc/AutoEat.java b/src/main/java/skid/krypton/module/modules/misc/AutoEat.java
---- a/src/main/java/skid/krypton/module/modules/misc/AutoEat.java	2026-11-25 08:23:19.507352305 +0000
-+++ b/src/main/java/skid/krypton/module/modules/misc/AutoEat.java	2026-11-25 08:23:19.520263080 +0000
+--- a/src/main/java/skid/krypton/module/modules/misc/AutoEat.java	2026-11-25 08:40:56.116133068 +0000
++++ b/src/main/java/skid/krypton/module/modules/misc/AutoEat.java	2026-11-25 08:40:56.125739599 +0000
 @@ -80,7 +80,7 @@
      }
  
@@ -3245,8 +3274,8 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/misc/AutoEat.java b/src/ma
      }
  
 diff -ruN a/src/main/java/skid/krypton/module/modules/misc/AutoFirework.java b/src/main/java/skid/krypton/module/modules/misc/AutoFirework.java
---- a/src/main/java/skid/krypton/module/modules/misc/AutoFirework.java	2026-11-25 08:23:19.507435640 +0000
-+++ b/src/main/java/skid/krypton/module/modules/misc/AutoFirework.java	2026-11-25 08:23:19.520341148 +0000
+--- a/src/main/java/skid/krypton/module/modules/misc/AutoFirework.java	2026-11-25 08:40:56.116202955 +0000
++++ b/src/main/java/skid/krypton/module/modules/misc/AutoFirework.java	2026-11-25 08:40:56.125813856 +0000
 @@ -1,7 +1,6 @@
  package skid.krypton.module.modules.misc;
  
@@ -3271,8 +3300,8 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/misc/AutoFirework.java b/s
              if (!InventoryUtil.swap(Items.FIREWORK_ROCKET)) {
                  this.resetState();
 diff -ruN a/src/main/java/skid/krypton/module/modules/misc/AutoMine.java b/src/main/java/skid/krypton/module/modules/misc/AutoMine.java
---- a/src/main/java/skid/krypton/module/modules/misc/AutoMine.java	2026-11-25 08:23:19.507484111 +0000
-+++ b/src/main/java/skid/krypton/module/modules/misc/AutoMine.java	2026-11-25 08:23:19.520386450 +0000
+--- a/src/main/java/skid/krypton/module/modules/misc/AutoMine.java	2026-11-25 08:40:56.116241163 +0000
++++ b/src/main/java/skid/krypton/module/modules/misc/AutoMine.java	2026-11-25 08:40:56.125860096 +0000
 @@ -65,7 +65,7 @@
                  if (!this.mc.world.getBlockState(blockPos).isAir()) {
                      final Direction side = blockHitResult.getSide();
@@ -3283,8 +3312,8 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/misc/AutoMine.java b/src/m
                      }
                  }
 diff -ruN a/src/main/java/skid/krypton/module/modules/misc/AutoTPA.java b/src/main/java/skid/krypton/module/modules/misc/AutoTPA.java
---- a/src/main/java/skid/krypton/module/modules/misc/AutoTPA.java	2026-11-25 08:23:19.507529956 +0000
-+++ b/src/main/java/skid/krypton/module/modules/misc/AutoTPA.java	2026-11-25 08:23:19.520542513 +0000
+--- a/src/main/java/skid/krypton/module/modules/misc/AutoTPA.java	2026-11-25 08:40:56.116281510 +0000
++++ b/src/main/java/skid/krypton/module/modules/misc/AutoTPA.java	2026-11-25 08:40:56.125929843 +0000
 @@ -44,7 +44,7 @@
          } else {
              commandPrefix = "tpahere ";
@@ -3295,8 +3324,8 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/misc/AutoTPA.java b/src/ma
      }
  
 diff -ruN a/src/main/java/skid/krypton/module/modules/misc/AutoTool.java b/src/main/java/skid/krypton/module/modules/misc/AutoTool.java
---- a/src/main/java/skid/krypton/module/modules/misc/AutoTool.java	2026-11-25 08:23:19.507593715 +0000
-+++ b/src/main/java/skid/krypton/module/modules/misc/AutoTool.java	2026-11-25 08:23:19.520640621 +0000
+--- a/src/main/java/skid/krypton/module/modules/misc/AutoTool.java	2026-11-25 08:40:56.116320094 +0000
++++ b/src/main/java/skid/krypton/module/modules/misc/AutoTool.java	2026-11-25 08:40:56.125972011 +0000
 @@ -79,7 +79,7 @@
          if (!predicate.test(itemStack) || !isToolItemStack(itemStack)) {
              return -1.0;
@@ -3316,8 +3345,8 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/misc/AutoTool.java b/src/m
  
      private boolean isToolBreakingSoon(final ItemStack itemStack) {
 diff -ruN a/src/main/java/skid/krypton/module/modules/misc/ElytraGlide.java b/src/main/java/skid/krypton/module/modules/misc/ElytraGlide.java
---- a/src/main/java/skid/krypton/module/modules/misc/ElytraGlide.java	2026-11-25 08:23:19.507700622 +0000
-+++ b/src/main/java/skid/krypton/module/modules/misc/ElytraGlide.java	2026-11-25 08:23:19.520704888 +0000
+--- a/src/main/java/skid/krypton/module/modules/misc/ElytraGlide.java	2026-11-25 08:40:56.116405491 +0000
++++ b/src/main/java/skid/krypton/module/modules/misc/ElytraGlide.java	2026-11-25 08:40:56.126009231 +0000
 @@ -42,12 +42,12 @@
          }
          if (this.isFlyingTriggered) {
@@ -3345,7 +3374,7 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/misc/ElytraGlide.java b/sr
 \ No newline at end of file
 diff -ruN a/src/main/java/skid/krypton/module/modules/misc/FakeStats.java b/src/main/java/skid/krypton/module/modules/misc/FakeStats.java
 --- a/src/main/java/skid/krypton/module/modules/misc/FakeStats.java	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/java/skid/krypton/module/modules/misc/FakeStats.java	2026-11-25 08:23:19.520850468 +0000
++++ b/src/main/java/skid/krypton/module/modules/misc/FakeStats.java	2026-11-25 08:40:56.126080616 +0000
 @@ -0,0 +1,22 @@
 +package skid.krypton.module.modules.misc;
 +
@@ -3370,8 +3399,8 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/misc/FakeStats.java b/src/
 +    }
 +}
 diff -ruN a/src/main/java/skid/krypton/module/modules/misc/Freecam.java b/src/main/java/skid/krypton/module/modules/misc/Freecam.java
---- a/src/main/java/skid/krypton/module/modules/misc/Freecam.java	2026-11-25 08:23:19.507810588 +0000
-+++ b/src/main/java/skid/krypton/module/modules/misc/Freecam.java	2026-11-25 08:23:19.521360076 +0000
+--- a/src/main/java/skid/krypton/module/modules/misc/Freecam.java	2026-11-25 08:40:56.116491398 +0000
++++ b/src/main/java/skid/krypton/module/modules/misc/Freecam.java	2026-11-25 08:40:56.126374625 +0000
 @@ -8,6 +8,7 @@
  import skid.krypton.event.events.*;
  import skid.krypton.module.Category;
@@ -3698,7 +3727,7 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/misc/Freecam.java b/src/ma
 \ No newline at end of file
 diff -ruN a/src/main/java/skid/krypton/module/modules/misc/Freelook.java b/src/main/java/skid/krypton/module/modules/misc/Freelook.java
 --- a/src/main/java/skid/krypton/module/modules/misc/Freelook.java	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/java/skid/krypton/module/modules/misc/Freelook.java	2026-11-25 08:23:19.521192824 +0000
++++ b/src/main/java/skid/krypton/module/modules/misc/Freelook.java	2026-11-25 08:40:56.126246494 +0000
 @@ -0,0 +1,22 @@
 +package skid.krypton.module.modules.misc;
 +
@@ -3723,8 +3752,8 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/misc/Freelook.java b/src/m
 +    }
 +}
 diff -ruN a/src/main/java/skid/krypton/module/modules/misc/KeyPearl.java b/src/main/java/skid/krypton/module/modules/misc/KeyPearl.java
---- a/src/main/java/skid/krypton/module/modules/misc/KeyPearl.java	2026-11-25 08:23:19.507861013 +0000
-+++ b/src/main/java/skid/krypton/module/modules/misc/KeyPearl.java	2026-11-25 08:23:19.521410902 +0000
+--- a/src/main/java/skid/krypton/module/modules/misc/KeyPearl.java	2026-11-25 08:40:56.116531728 +0000
++++ b/src/main/java/skid/krypton/module/modules/misc/KeyPearl.java	2026-11-25 08:40:56.126432408 +0000
 @@ -51,7 +51,7 @@
          }
          if (this.isActivated) {
@@ -3745,7 +3774,7 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/misc/KeyPearl.java b/src/m
                  this.hasThrown = true;
 diff -ruN a/src/main/java/skid/krypton/module/modules/misc/PlayerDetection.java b/src/main/java/skid/krypton/module/modules/misc/PlayerDetection.java
 --- a/src/main/java/skid/krypton/module/modules/misc/PlayerDetection.java	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/java/skid/krypton/module/modules/misc/PlayerDetection.java	2026-11-25 08:23:19.521249572 +0000
++++ b/src/main/java/skid/krypton/module/modules/misc/PlayerDetection.java	2026-11-25 08:40:56.126285656 +0000
 @@ -0,0 +1,22 @@
 +package skid.krypton.module.modules.misc;
 +
@@ -3771,7 +3800,7 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/misc/PlayerDetection.java 
 +}
 diff -ruN a/src/main/java/skid/krypton/module/modules/misc/Sprint.java b/src/main/java/skid/krypton/module/modules/misc/Sprint.java
 --- a/src/main/java/skid/krypton/module/modules/misc/Sprint.java	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/java/skid/krypton/module/modules/misc/Sprint.java	2026-11-25 08:23:19.521457375 +0000
++++ b/src/main/java/skid/krypton/module/modules/misc/Sprint.java	2026-11-25 08:40:56.126445217 +0000
 @@ -0,0 +1,22 @@
 +package skid.krypton.module.modules.misc;
 +
@@ -3797,7 +3826,7 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/misc/Sprint.java b/src/mai
 +}
 diff -ruN a/src/main/java/skid/krypton/module/modules/render/BlockESP.java b/src/main/java/skid/krypton/module/modules/render/BlockESP.java
 --- a/src/main/java/skid/krypton/module/modules/render/BlockESP.java	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/java/skid/krypton/module/modules/render/BlockESP.java	2026-11-25 08:23:19.521785706 +0000
++++ b/src/main/java/skid/krypton/module/modules/render/BlockESP.java	2026-11-25 08:40:56.126715070 +0000
 @@ -0,0 +1,210 @@
 +package skid.krypton.module.modules.render;
 +
@@ -4010,8 +4039,8 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/render/BlockESP.java b/src
 +    }
 +}
 diff -ruN a/src/main/java/skid/krypton/module/modules/render/HUD.java b/src/main/java/skid/krypton/module/modules/render/HUD.java
---- a/src/main/java/skid/krypton/module/modules/render/HUD.java	2026-11-25 08:23:19.507996980 +0000
-+++ b/src/main/java/skid/krypton/module/modules/render/HUD.java	2026-11-25 08:23:19.521805268 +0000
+--- a/src/main/java/skid/krypton/module/modules/render/HUD.java	2026-11-25 08:40:56.116677305 +0000
++++ b/src/main/java/skid/krypton/module/modules/render/HUD.java	2026-11-25 08:40:56.126765689 +0000
 @@ -25,7 +25,7 @@
  
  public final class HUD
@@ -4073,8 +4102,8 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/render/HUD.java b/src/main
              n3 += 25;
          }
 diff -ruN a/src/main/java/skid/krypton/module/modules/render/PlayerESP.java b/src/main/java/skid/krypton/module/modules/render/PlayerESP.java
---- a/src/main/java/skid/krypton/module/modules/render/PlayerESP.java	2026-11-25 08:23:19.508079784 +0000
-+++ b/src/main/java/skid/krypton/module/modules/render/PlayerESP.java	2026-11-25 08:23:19.521503815 +0000
+--- a/src/main/java/skid/krypton/module/modules/render/PlayerESP.java	2026-11-25 08:40:56.116755463 +0000
++++ b/src/main/java/skid/krypton/module/modules/render/PlayerESP.java	2026-11-25 08:40:56.126504976 +0000
 @@ -53,68 +53,21 @@
                      final MatrixStack a = render3DEvent.matrixStack;
                      render3DEvent.matrixStack.push();
@@ -4151,7 +4180,7 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/render/PlayerESP.java b/sr
          final int f = Krypton.redColor.getIntValue();
 diff -ruN a/src/main/java/skid/krypton/module/modules/render/SpawnerNotify.java b/src/main/java/skid/krypton/module/modules/render/SpawnerNotify.java
 --- a/src/main/java/skid/krypton/module/modules/render/SpawnerNotify.java	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/java/skid/krypton/module/modules/render/SpawnerNotify.java	2026-11-25 08:23:19.521617990 +0000
++++ b/src/main/java/skid/krypton/module/modules/render/SpawnerNotify.java	2026-11-25 08:40:56.126577515 +0000
 @@ -0,0 +1,22 @@
 +package skid.krypton.module.modules.render;
 +
@@ -4176,8 +4205,8 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/render/SpawnerNotify.java 
 +    }
 +}
 diff -ruN a/src/main/java/skid/krypton/module/modules/render/StorageESP.java b/src/main/java/skid/krypton/module/modules/render/StorageESP.java
---- a/src/main/java/skid/krypton/module/modules/render/StorageESP.java	2026-11-25 08:23:19.508125190 +0000
-+++ b/src/main/java/skid/krypton/module/modules/render/StorageESP.java	2026-11-25 08:23:19.521880411 +0000
+--- a/src/main/java/skid/krypton/module/modules/render/StorageESP.java	2026-11-25 08:40:56.116796438 +0000
++++ b/src/main/java/skid/krypton/module/modules/render/StorageESP.java	2026-11-25 08:40:56.126814300 +0000
 @@ -89,8 +89,6 @@
              Vec3d camPos = RenderUtils.getCameraPos();
              MatrixStack matrices = event.matrixStack;
@@ -4196,9 +4225,40 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/render/StorageESP.java b/s
              }
          }
  
+diff -ruN a/src/main/java/skid/krypton/module/modules/render/SwingSpeed.java b/src/main/java/skid/krypton/module/modules/render/SwingSpeed.java
+--- a/src/main/java/skid/krypton/module/modules/render/SwingSpeed.java	1970-01-01 00:00:00.000000000 +0000
++++ b/src/main/java/skid/krypton/module/modules/render/SwingSpeed.java	2026-11-25 08:40:56.126827791 +0000
+@@ -0,0 +1,27 @@
++package skid.krypton.module.modules.render;
++
++import skid.krypton.module.Category;
++import skid.krypton.module.Module;
++import skid.krypton.module.setting.NumberSetting;
++import skid.krypton.utils.EncryptedString;
++
++/**
++ * SwingSpeed: changes how fast your own swing animation plays (visual only, nothing is sent to the server).
++ * The actual work is done in LivingEntityMixin, which asks {@link #getSwingDuration(int)} for the swing length.
++ */
++public final class SwingSpeed extends Module {
++    private final NumberSetting speed = new NumberSetting(EncryptedString.of("Speed"), 1.0, 20.0, 10.0, 1.0);
++
++    public SwingSpeed() {
++        super(EncryptedString.of("SwingSpeed"), EncryptedString.of("Modifies your swing animation speed (visual only)"), -1, Category.RENDER);
++        this.addSettings(this.speed);
++    }
++
++    /**
++     * Swing length in ticks. Speed 5 is the vanilla speed (6 ticks), higher is faster, lower is slower,
++     * speed 20 gives a 2 tick swing.
++     */
++    public int getSwingDuration(final int vanilla) {
++        return Math.max(1, (int) Math.round(30.0 / this.speed.getValue()));
++    }
++}
 diff -ruN a/src/main/java/skid/krypton/module/modules/render/TargetHUD.java b/src/main/java/skid/krypton/module/modules/render/TargetHUD.java
---- a/src/main/java/skid/krypton/module/modules/render/TargetHUD.java	2026-11-25 08:23:19.508173329 +0000
-+++ b/src/main/java/skid/krypton/module/modules/render/TargetHUD.java	2026-11-25 08:23:19.521672410 +0000
+--- a/src/main/java/skid/krypton/module/modules/render/TargetHUD.java	2026-11-25 08:40:56.116841641 +0000
++++ b/src/main/java/skid/krypton/module/modules/render/TargetHUD.java	2026-11-25 08:40:56.126640692 +0000
 @@ -59,6 +59,7 @@
          final float g = this.fadeSpeed.getFloatValue();
          final Color h = this.primaryColor;
@@ -4257,7 +4317,7 @@ diff -ruN a/src/main/java/skid/krypton/module/modules/render/TargetHUD.java b/sr
          TextRenderer.drawString(s, drawContext, n + n3 / 2 - TextRenderer.getWidth(s) / 2, n2 + 5, new Color(200, 200, 200, (int) (255.0f * n5)).getRGB());
 diff -ruN a/src/main/java/skid/krypton/module/setting/BlockColorSetting.java b/src/main/java/skid/krypton/module/setting/BlockColorSetting.java
 --- a/src/main/java/skid/krypton/module/setting/BlockColorSetting.java	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/java/skid/krypton/module/setting/BlockColorSetting.java	2026-11-25 08:23:19.521967198 +0000
++++ b/src/main/java/skid/krypton/module/setting/BlockColorSetting.java	2026-11-25 08:40:56.126866165 +0000
 @@ -0,0 +1,137 @@
 +package skid.krypton.module.setting;
 +
@@ -4397,8 +4457,8 @@ diff -ruN a/src/main/java/skid/krypton/module/setting/BlockColorSetting.java b/s
 +    }
 +}
 diff -ruN a/src/main/java/skid/krypton/utils/BlockUtil.java b/src/main/java/skid/krypton/utils/BlockUtil.java
---- a/src/main/java/skid/krypton/utils/BlockUtil.java	2026-11-25 08:23:19.508771314 +0000
-+++ b/src/main/java/skid/krypton/utils/BlockUtil.java	2026-11-25 08:23:19.523558525 +0000
+--- a/src/main/java/skid/krypton/utils/BlockUtil.java	2026-11-25 08:40:56.117357374 +0000
++++ b/src/main/java/skid/krypton/utils/BlockUtil.java	2026-11-25 08:40:56.128580673 +0000
 @@ -62,7 +62,7 @@
  
      public static void interactWithBlock(final BlockHitResult blockHitResult, final boolean shouldSwingHand) {
@@ -4410,7 +4470,7 @@ diff -ruN a/src/main/java/skid/krypton/utils/BlockUtil.java b/src/main/java/skid
      }
 diff -ruN a/src/main/java/skid/krypton/utils/CompatUtil.java b/src/main/java/skid/krypton/utils/CompatUtil.java
 --- a/src/main/java/skid/krypton/utils/CompatUtil.java	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/java/skid/krypton/utils/CompatUtil.java	2026-11-25 08:23:19.522654012 +0000
++++ b/src/main/java/skid/krypton/utils/CompatUtil.java	2026-11-25 08:40:56.127349964 +0000
 @@ -0,0 +1,14 @@
 +package skid.krypton.utils;
 +
@@ -4427,8 +4487,8 @@ diff -ruN a/src/main/java/skid/krypton/utils/CompatUtil.java b/src/main/java/ski
 +    }
 +}
 diff -ruN a/src/main/java/skid/krypton/utils/FakeInvScreen.java b/src/main/java/skid/krypton/utils/FakeInvScreen.java
---- a/src/main/java/skid/krypton/utils/FakeInvScreen.java	2026-11-25 08:23:19.508968686 +0000
-+++ b/src/main/java/skid/krypton/utils/FakeInvScreen.java	2026-11-25 08:23:19.523625953 +0000
+--- a/src/main/java/skid/krypton/utils/FakeInvScreen.java	2026-11-25 08:40:56.117516338 +0000
++++ b/src/main/java/skid/krypton/utils/FakeInvScreen.java	2026-11-25 08:40:56.128645586 +0000
 @@ -17,7 +17,7 @@
      }
  
@@ -4439,8 +4499,8 @@ diff -ruN a/src/main/java/skid/krypton/utils/FakeInvScreen.java b/src/main/java/
      }
  }
 diff -ruN a/src/main/java/skid/krypton/utils/InventoryUtil.java b/src/main/java/skid/krypton/utils/InventoryUtil.java
---- a/src/main/java/skid/krypton/utils/InventoryUtil.java	2026-11-25 08:23:19.509014051 +0000
-+++ b/src/main/java/skid/krypton/utils/InventoryUtil.java	2026-11-25 08:23:19.522838463 +0000
+--- a/src/main/java/skid/krypton/utils/InventoryUtil.java	2026-11-25 08:40:56.117553543 +0000
++++ b/src/main/java/skid/krypton/utils/InventoryUtil.java	2026-11-25 08:40:56.127514238 +0000
 @@ -15,7 +15,7 @@
          if (selectedSlot < 0 || selectedSlot > 8) {
              return;
@@ -4469,8 +4529,8 @@ diff -ruN a/src/main/java/skid/krypton/utils/InventoryUtil.java b/src/main/java/
              }
          }
 diff -ruN a/src/main/java/skid/krypton/utils/RenderUtils.java b/src/main/java/skid/krypton/utils/RenderUtils.java
---- a/src/main/java/skid/krypton/utils/RenderUtils.java	2026-11-25 08:23:19.509195604 +0000
-+++ b/src/main/java/skid/krypton/utils/RenderUtils.java	2026-11-25 08:23:19.522889912 +0000
+--- a/src/main/java/skid/krypton/utils/RenderUtils.java	2026-11-25 08:40:56.117702454 +0000
++++ b/src/main/java/skid/krypton/utils/RenderUtils.java	2026-11-25 08:40:56.127557517 +0000
 @@ -1,36 +1,36 @@
  package skid.krypton.utils;
  
@@ -4981,8 +5041,8 @@ diff -ruN a/src/main/java/skid/krypton/utils/RenderUtils.java b/src/main/java/sk
 \ No newline at end of file
 +}
 diff -ruN a/src/main/java/skid/krypton/utils/TextRenderer.java b/src/main/java/skid/krypton/utils/TextRenderer.java
---- a/src/main/java/skid/krypton/utils/TextRenderer.java	2026-11-25 08:23:19.509248222 +0000
-+++ b/src/main/java/skid/krypton/utils/TextRenderer.java	2026-11-25 08:23:19.523015877 +0000
+--- a/src/main/java/skid/krypton/utils/TextRenderer.java	2026-11-25 08:40:56.117742825 +0000
++++ b/src/main/java/skid/krypton/utils/TextRenderer.java	2026-11-25 08:40:56.127698885 +0000
 @@ -1,49 +1,64 @@
  package skid.krypton.utils;
  
@@ -5080,7 +5140,7 @@ diff -ruN a/src/main/java/skid/krypton/utils/TextRenderer.java b/src/main/java/s
  }
 diff -ruN a/src/main/java/skid/krypton/utils/WorldRender3D.java b/src/main/java/skid/krypton/utils/WorldRender3D.java
 --- a/src/main/java/skid/krypton/utils/WorldRender3D.java	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/java/skid/krypton/utils/WorldRender3D.java	2026-11-25 08:23:19.523217836 +0000
++++ b/src/main/java/skid/krypton/utils/WorldRender3D.java	2026-11-25 08:40:56.127744998 +0000
 @@ -0,0 +1,167 @@
 +package skid.krypton.utils;
 +
@@ -5250,8 +5310,8 @@ diff -ruN a/src/main/java/skid/krypton/utils/WorldRender3D.java b/src/main/java/
 +    }
 +}
 diff -ruN a/src/main/java/skid/krypton/utils/meteorrejects/Ore.java b/src/main/java/skid/krypton/utils/meteorrejects/Ore.java
---- a/src/main/java/skid/krypton/utils/meteorrejects/Ore.java	2026-11-25 08:23:19.509490644 +0000
-+++ b/src/main/java/skid/krypton/utils/meteorrejects/Ore.java	2026-11-25 08:23:19.523459205 +0000
+--- a/src/main/java/skid/krypton/utils/meteorrejects/Ore.java	2026-11-25 08:40:56.117961832 +0000
++++ b/src/main/java/skid/krypton/utils/meteorrejects/Ore.java	2026-11-25 08:40:56.128508140 +0000
 @@ -43,8 +43,8 @@
  
      public static Map<RegistryKey<Biome>, List<Ore>> register() {
@@ -5265,7 +5325,7 @@ diff -ruN a/src/main/java/skid/krypton/utils/meteorrejects/Ore.java b/src/main/j
          var registry = OrePlacedFeatures.ORE_DEBRIS_SMALL;
 diff -ruN a/src/main/resources/assets/krypton/font/main.json b/src/main/resources/assets/krypton/font/main.json
 --- a/src/main/resources/assets/krypton/font/main.json	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/resources/assets/krypton/font/main.json	2026-11-25 08:23:19.523756329 +0000
++++ b/src/main/resources/assets/krypton/font/main.json	2026-11-25 08:40:56.128968307 +0000
 @@ -0,0 +1,15 @@
 +{
 +  "providers": [
@@ -5284,7 +5344,7 @@ diff -ruN a/src/main/resources/assets/krypton/font/main.json b/src/main/resource
 +}
 diff -ruN a/src/main/resources/assets/krypton/font/p10.json b/src/main/resources/assets/krypton/font/p10.json
 --- a/src/main/resources/assets/krypton/font/p10.json	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/resources/assets/krypton/font/p10.json	2026-11-25 08:23:19.523791693 +0000
++++ b/src/main/resources/assets/krypton/font/p10.json	2026-11-25 08:40:56.129267480 +0000
 @@ -0,0 +1,15 @@
 +{
 +  "providers": [
@@ -5303,7 +5363,7 @@ diff -ruN a/src/main/resources/assets/krypton/font/p10.json b/src/main/resources
 +}
 diff -ruN a/src/main/resources/assets/krypton/font/p11.json b/src/main/resources/assets/krypton/font/p11.json
 --- a/src/main/resources/assets/krypton/font/p11.json	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/resources/assets/krypton/font/p11.json	2026-11-25 08:23:19.523808998 +0000
++++ b/src/main/resources/assets/krypton/font/p11.json	2026-11-25 08:40:56.129305221 +0000
 @@ -0,0 +1,15 @@
 +{
 +  "providers": [
@@ -5322,7 +5382,7 @@ diff -ruN a/src/main/resources/assets/krypton/font/p11.json b/src/main/resources
 +}
 diff -ruN a/src/main/resources/assets/krypton/font/p12.json b/src/main/resources/assets/krypton/font/p12.json
 --- a/src/main/resources/assets/krypton/font/p12.json	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/resources/assets/krypton/font/p12.json	2026-11-25 08:23:19.523819315 +0000
++++ b/src/main/resources/assets/krypton/font/p12.json	2026-11-25 08:40:56.129342196 +0000
 @@ -0,0 +1,15 @@
 +{
 +  "providers": [
@@ -5341,7 +5401,7 @@ diff -ruN a/src/main/resources/assets/krypton/font/p12.json b/src/main/resources
 +}
 diff -ruN a/src/main/resources/assets/krypton/font/p13.json b/src/main/resources/assets/krypton/font/p13.json
 --- a/src/main/resources/assets/krypton/font/p13.json	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/resources/assets/krypton/font/p13.json	2026-11-25 08:23:19.523829522 +0000
++++ b/src/main/resources/assets/krypton/font/p13.json	2026-11-25 08:40:56.129389447 +0000
 @@ -0,0 +1,15 @@
 +{
 +  "providers": [
@@ -5360,7 +5420,7 @@ diff -ruN a/src/main/resources/assets/krypton/font/p13.json b/src/main/resources
 +}
 diff -ruN a/src/main/resources/assets/krypton/font/p14.json b/src/main/resources/assets/krypton/font/p14.json
 --- a/src/main/resources/assets/krypton/font/p14.json	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/resources/assets/krypton/font/p14.json	2026-11-25 08:23:19.523839358 +0000
++++ b/src/main/resources/assets/krypton/font/p14.json	2026-11-25 08:40:56.129428473 +0000
 @@ -0,0 +1,15 @@
 +{
 +  "providers": [
@@ -5379,7 +5439,7 @@ diff -ruN a/src/main/resources/assets/krypton/font/p14.json b/src/main/resources
 +}
 diff -ruN a/src/main/resources/assets/krypton/font/p15.json b/src/main/resources/assets/krypton/font/p15.json
 --- a/src/main/resources/assets/krypton/font/p15.json	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/resources/assets/krypton/font/p15.json	2026-11-25 08:23:19.523851423 +0000
++++ b/src/main/resources/assets/krypton/font/p15.json	2026-11-25 08:40:56.129471502 +0000
 @@ -0,0 +1,15 @@
 +{
 +  "providers": [
@@ -5398,7 +5458,7 @@ diff -ruN a/src/main/resources/assets/krypton/font/p15.json b/src/main/resources
 +}
 diff -ruN a/src/main/resources/assets/krypton/font/p16.json b/src/main/resources/assets/krypton/font/p16.json
 --- a/src/main/resources/assets/krypton/font/p16.json	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/resources/assets/krypton/font/p16.json	2026-11-25 08:23:19.523863644 +0000
++++ b/src/main/resources/assets/krypton/font/p16.json	2026-11-25 08:40:56.129515033 +0000
 @@ -0,0 +1,15 @@
 +{
 +  "providers": [
@@ -5417,7 +5477,7 @@ diff -ruN a/src/main/resources/assets/krypton/font/p16.json b/src/main/resources
 +}
 diff -ruN a/src/main/resources/assets/krypton/font/p17.json b/src/main/resources/assets/krypton/font/p17.json
 --- a/src/main/resources/assets/krypton/font/p17.json	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/resources/assets/krypton/font/p17.json	2026-11-25 08:23:19.523878493 +0000
++++ b/src/main/resources/assets/krypton/font/p17.json	2026-11-25 08:40:56.129560710 +0000
 @@ -0,0 +1,15 @@
 +{
 +  "providers": [
@@ -5436,7 +5496,7 @@ diff -ruN a/src/main/resources/assets/krypton/font/p17.json b/src/main/resources
 +}
 diff -ruN a/src/main/resources/assets/krypton/font/p18.json b/src/main/resources/assets/krypton/font/p18.json
 --- a/src/main/resources/assets/krypton/font/p18.json	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/resources/assets/krypton/font/p18.json	2026-11-25 08:23:19.523895327 +0000
++++ b/src/main/resources/assets/krypton/font/p18.json	2026-11-25 08:40:56.129617962 +0000
 @@ -0,0 +1,15 @@
 +{
 +  "providers": [
@@ -5455,7 +5515,7 @@ diff -ruN a/src/main/resources/assets/krypton/font/p18.json b/src/main/resources
 +}
 diff -ruN a/src/main/resources/assets/krypton/font/p19.json b/src/main/resources/assets/krypton/font/p19.json
 --- a/src/main/resources/assets/krypton/font/p19.json	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/resources/assets/krypton/font/p19.json	2026-11-25 08:23:19.523910566 +0000
++++ b/src/main/resources/assets/krypton/font/p19.json	2026-11-25 08:40:56.129658669 +0000
 @@ -0,0 +1,15 @@
 +{
 +  "providers": [
@@ -5474,7 +5534,7 @@ diff -ruN a/src/main/resources/assets/krypton/font/p19.json b/src/main/resources
 +}
 diff -ruN a/src/main/resources/assets/krypton/font/p20.json b/src/main/resources/assets/krypton/font/p20.json
 --- a/src/main/resources/assets/krypton/font/p20.json	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/resources/assets/krypton/font/p20.json	2026-11-25 08:23:19.523943250 +0000
++++ b/src/main/resources/assets/krypton/font/p20.json	2026-11-25 08:40:56.129698013 +0000
 @@ -0,0 +1,15 @@
 +{
 +  "providers": [
@@ -5493,7 +5553,7 @@ diff -ruN a/src/main/resources/assets/krypton/font/p20.json b/src/main/resources
 +}
 diff -ruN a/src/main/resources/assets/krypton/font/p8.json b/src/main/resources/assets/krypton/font/p8.json
 --- a/src/main/resources/assets/krypton/font/p8.json	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/resources/assets/krypton/font/p8.json	2026-11-25 08:23:19.523768912 +0000
++++ b/src/main/resources/assets/krypton/font/p8.json	2026-11-25 08:40:56.129096365 +0000
 @@ -0,0 +1,15 @@
 +{
 +  "providers": [
@@ -5512,7 +5572,7 @@ diff -ruN a/src/main/resources/assets/krypton/font/p8.json b/src/main/resources/
 +}
 diff -ruN a/src/main/resources/assets/krypton/font/p9.json b/src/main/resources/assets/krypton/font/p9.json
 --- a/src/main/resources/assets/krypton/font/p9.json	1970-01-01 00:00:00.000000000 +0000
-+++ b/src/main/resources/assets/krypton/font/p9.json	2026-11-25 08:23:19.523779933 +0000
++++ b/src/main/resources/assets/krypton/font/p9.json	2026-11-25 08:40:56.129204599 +0000
 @@ -0,0 +1,15 @@
 +{
 +  "providers": [
@@ -5530,8 +5590,8 @@ diff -ruN a/src/main/resources/assets/krypton/font/p9.json b/src/main/resources/
 +  ]
 +}
 diff -ruN a/src/main/resources/client.mixins.json b/src/main/resources/client.mixins.json
---- a/src/main/resources/client.mixins.json	2026-11-25 08:23:19.509609459 +0000
-+++ b/src/main/resources/client.mixins.json	2026-11-25 08:23:19.524327788 +0000
+--- a/src/main/resources/client.mixins.json	2026-11-25 08:40:56.118042688 +0000
++++ b/src/main/resources/client.mixins.json	2026-11-25 08:40:56.129841613 +0000
 @@ -1,5 +1,5 @@
  {
 -  "required": true,
@@ -5555,8 +5615,13 @@ diff -ruN a/src/main/resources/client.mixins.json b/src/main/resources/client.mi
      "CountPlacementModifierAccessor",
      "HeightRangePlacementModifierAccessor",
      "RarityFilterPlacementModifierAccessor",
-@@ -35,7 +33,7 @@
-     "TextVisitFactoryMixin"
+@@ -32,10 +30,11 @@
+     "MobSpawnerLogicAccessor",
+     "MouseMixin",
+     "ChunkOcclusionDataBuilderMixin",
+-    "TextVisitFactoryMixin"
++    "TextVisitFactoryMixin",
++    "LivingEntityMixin"
    ],
    "injectors": {
 -    "defaultRequire": 1
